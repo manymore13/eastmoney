@@ -1,0 +1,47 @@
+name: Action Practice
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+    - cron: '0 16 * * *'
+  push:
+    branches: ["main"]
+
+env:
+  TZ: Asia/Shanghai
+
+jobs:
+  # a single job
+  a-job-name:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python3
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install requirements
+        run: |
+          python3 -m pip install --upgrade pip
+          pip3 install -r ./requirements.txt
+      - name: Run
+        run: python3 ./eastmoney.py
+      - name: Commit
+        env:
+          GIT_NAME: GitHub Actions[Bot]
+          GIT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          git config --local user.name $GIT_NAME
+          git config --local user.email $GIT_EMAIL
+          git add .
+          git commit -m "Github action update at `date '+%Y-%m-%d %H:%M:%S'`."
+      - name: Push
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main      
+
