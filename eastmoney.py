@@ -3,6 +3,7 @@ import time
 import re
 import json
 import os
+import csv
 
 
 class EastMoneyReport:
@@ -48,16 +49,33 @@ class EastMoneyReport:
         report_content = re.search('\((.+)\)', report_content).group(1)
         return report_content
 
-    def save(self, report_name, content):
+    def save_json(self, report_name, content):
         with open(os.path.join('.', report_name + '.json'), 'w', encoding='utf-8') as file:
             file.write(content)
+
+    def save_csv(self, report_name, content_json):
+        reportlist = json.loads(content_json)['data']
+        report_list_data = []
+        for report in reportlist:
+            report_data = {'研报名称': report['title'], '机构名称': report['orgSName'],
+                           '发布时间': report['publishDate'], '行业': report['orgSName'],
+                           '研报地址': report['infoCode']}
+            report_list_data.append(report_data)
+
+        with open(report_name + '.csv', 'w', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=['研报名称', '机构名称', '发布时间', '行业', '研报地址'])
+            writer.writeheader()
+            writer.writerows(report_list_data)
 
 
 if __name__ == '__main__':
     report = EastMoneyReport()
-    report_json = report.get_report_json(beginTime='2023-05-10')
-    report.save('行业研报', report_json)
-    print(report_json)
+    report_json = report.get_report_json(beginTime='2021-05-10')
+    file_name = '行业研报'
+    report.save_json(file_name, report_json)
+    report.save_csv(file_name, report_json)
+
+    print('done')
 
     # print(requests.get('https://reportapi.eastmoney.com/report/list?cb=datatable1808538&industryCode=1046&pageSize=50&industry=*&rating=*&ratingChange=*&beginTime=2021-05-14&endTime=2023-05-14&pageNo=1&fields=&qType=1&orgCode=&rcode=&_=1684069265811').text)
     #                    'https://reportapi.eastmoney.com/report/list?cb=datatable1808538&industryCode=1046&pageSize=50&industry=*&rating=*&ratingChange=*&beginTime=2023-05-14&endTime=2023-05-14&pageNo=1&fields=&qType=1&orgCode=&rcode=&_=1684069265811'
