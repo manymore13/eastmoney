@@ -8,6 +8,7 @@ import csv
 
 class EastMoneyReport:
     east_money_url = 'https://reportapi.eastmoney.com/report/list?cb=datatable1808538&industryCode={industryCode}&pageSize={pageSize}&industry=*&rating=*&ratingChange=*&beginTime={beginTime}&endTime={endTime}&pageNo={pageNo}&fields=&qType=1&orgCode=&rcode=&_={time}'
+    report_info_url = 'https://data.eastmoney.com/report/zw_industry.jshtml?infocode='
     cur_report_url = ''
 
     def __init__(self):
@@ -58,8 +59,8 @@ class EastMoneyReport:
         report_list_data = []
         for report in reportlist:
             report_data = {'研报名称': report['title'], '机构名称': report['orgSName'],
-                           '发布时间': report['publishDate'], '行业': report['orgSName'],
-                           '研报地址': report['infoCode']}
+                           '发布时间': report['publishDate'], '行业': report['industryName'],
+                           '研报地址': self.report_info_url + report['infoCode']}
             report_list_data.append(report_data)
 
         with open(report_name + '.csv', 'w', encoding='utf-8') as f:
@@ -67,14 +68,20 @@ class EastMoneyReport:
             writer.writeheader()
             writer.writerows(report_list_data)
 
+    def save(self, report_name, content_json):
+        self.save_json(report_name, content_json)
+        self.save_csv(report_name, content_json)
+
 
 if __name__ == '__main__':
     report = EastMoneyReport()
-    report_json = report.get_report_json(beginTime='2021-05-10')
-    file_name = '行业研报'
-    report.save_json(file_name, report_json)
-    report.save_csv(file_name, report_json)
 
+    industry_name_list = [['游戏行业', 1046], ['保险', 474], ['房地产服务', 1045]]
+    for industry in industry_name_list:
+        file_name = industry[0]
+        industry_code = industry[1]
+        report_json = report.get_report_json(industryCode=industry_code)
+        report.save(file_name, report_json)
     print('done')
 
     # print(requests.get('https://reportapi.eastmoney.com/report/list?cb=datatable1808538&industryCode=1046&pageSize=50&industry=*&rating=*&ratingChange=*&beginTime=2021-05-14&endTime=2023-05-14&pageNo=1&fields=&qType=1&orgCode=&rcode=&_=1684069265811').text)
