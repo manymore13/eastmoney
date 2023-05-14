@@ -55,7 +55,7 @@ class EastMoneyReport:
 
 if __name__ == '__main__':
     report = EastMoneyReport()
-    report_json = report.get_report_json(beginTime='2023-05-10')
+    report_json = report.get_report_json()
     report.save('行业研报', report_json)
     print(report_json)
 
