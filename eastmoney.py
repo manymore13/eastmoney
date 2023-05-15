@@ -3,6 +3,7 @@ import json
 import os
 import re
 import time
+from datetime import datetime
 
 import requests
 
@@ -63,7 +64,7 @@ class EastMoneyReport:
         report_list_data = []
         for report in report_list:
             report_data = {'研报名称': report['title'], '机构名称': report['orgSName'],
-                           '发布时间': report['publishDate'], '行业': report['industryName'],
+                           '发布时间': re.findall('\d+-\d+-\d+',report['publishDate'])[0], '行业': report['industryName'],
                            '研报地址': self.report_info_url + report['infoCode']}
             report_list_data.append(report_data)
 
@@ -95,11 +96,12 @@ if __name__ == '__main__':
     report = EastMoneyReport()
     dir_name = 'gen'
     os.makedirs(dir_name, exist_ok=True)
+    end_time = datetime.now().strftime('%Y-%m-%d')
     for industry in industry_name_list:
         file_name = industry[0]
         industry_code = industry[1]
         page_size = industry[2]
-        json_url = report.build_url(industryCode=industry_code, pageSize=page_size)
+        json_url = report.build_url(industryCode=industry_code, pageSize=page_size, endTime=end_time)
         report.download_report(dir_name, file_name, json_url)
     # gen_readme_file(dir_name, industry_name_list)
     print('done')
