@@ -1,5 +1,2 @@
-研报名称,机构名称,发布时间,行业,研报地址
-汽车行业智能网联赛道周动态（2023年3月第4期）,国元证券,2023-03-28 00:00:00.000,汽车服务,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202303281584603929
-2月汽车销量点评：需求继续恢复，但弹性不足,华安证券,2023-03-13 00:00:00.000,汽车服务,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202303131584215231
-2月新能源车零售数据深度分析：非限购城市新能源渗透率创新高,安信证券,2022-03-15 00:00:00.000,汽车服务,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202203151552800545
-车企上云之路白皮书,普华永道中天会计师事务所,2021-12-31 00:00:00.000,汽车服务,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202112311537664871
+# eastmoney
+ 抓取东方财富研报[汽车服务](gen\汽车服务.csv),

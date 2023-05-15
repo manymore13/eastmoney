@@ -78,9 +78,14 @@ class EastMoneyReport:
         self.save_csv(dir_name, report_name, content_json)
 
 
-def gen_readme_file(industry_name_list):
-    with open(file_name, 'w', encoding='utf-8') as f:
-        f.write('')
+def gen_readme_file(dir_name, industry_name_list):
+    for industry in industry_name_list:
+        file_name = industry[0]
+        ab_file_name = os.path.join(dir_name, file_name + '.csv')
+        with open('','w',encoding='utf-8') as readme_file:
+            url = os.path.join(dir_name, file_name + '.csv')
+            readme_file.write('# eastmoney\n 抓取东方财富研报')
+            readme_file.write('[{}]({}),'.format(file_name, url))
 
 
 if __name__ == '__main__':
@@ -92,10 +97,11 @@ if __name__ == '__main__':
     # json.loads()
     # industry_name_list = [['游戏行业', 1046], ['保险', 474], ['房地产服务', 1045], ['不限行业', '*']]
     dir_name = 'gen'
-    os.makedirs(dir_name, exist_ok=True)
-    for industry in industry_name_list:
-        file_name = industry[0]
-        industry_code = industry[1]
-        json_url = report.build_url(industryCode=industry_code)
-        report.download_report(dir_name, file_name, json_url)
+    # os.makedirs(dir_name, exist_ok=True)
+    # for industry in industry_name_list:
+    #     file_name = industry[0]
+    #     industry_code = industry[1]
+    #     json_url = report.build_url(industryCode=industry_code)
+    #     report.download_report(dir_name, file_name, json_url)
+    gen_readme_file(dir_name, industry_name_list)
     print('done')

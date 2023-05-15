@@ -1,6 +1,2 @@
-研报名称,机构名称,发布时间,行业,研报地址
-机械设备行业周报：工控自动化优势明显，工程机械景气度回升,东莞证券,2021-09-22 00:00:00.000,综合行业,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202109221517822135
-不婚面面观：中国当代不婚现象白皮书,艾瑞股份,2021-09-07 00:00:00.000,综合行业,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202109071514775739
-机械设备行业周报：宁德时代发布钠离子电池，2030年美国有望实现至少40%的新车销售为电动汽车,华西证券,2021-08-02 00:00:00.000,综合行业,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202108021507573513
-综合行业点评报告：双减政策落地，“坚决压减学科类校外培训”,华西证券,2021-07-26 00:00:00.000,综合行业,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202107261506154367
-2021年中国应急解决方案行业概览,头豹研究院,2021-06-15 00:00:00.000,综合行业,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202106151498042164
+# eastmoney
+ 抓取东方财富研报[综合行业](gen\综合行业.csv),
