@@ -80,11 +80,11 @@ class EastMoneyReport:
 
 def gen_readme_file(dir_name, industry_name_list):
     with open('README.md', 'w', encoding='utf-8') as readme_file:
-        readme_file.write('# eastmoney\n 抓取东方财富研报\n')
+        readme_file.write('# eastmoney\n 东方财富行业研报，每天自动更新\n\n\n')
         for industry in industry_name_list:
             file_name = industry[0]
             url = '{}/{}'.format(dir_name, file_name + '.csv')
-            readme_file.write('`[{}]({})`  '.format(file_name, url))
+            readme_file.write('[`{}`]({})  '.format(file_name, url))
 
 
 if __name__ == '__main__':
@@ -98,7 +98,8 @@ if __name__ == '__main__':
     for industry in industry_name_list:
         file_name = industry[0]
         industry_code = industry[1]
-        json_url = report.build_url(industryCode=industry_code)
+        page_size = industry[2]
+        json_url = report.build_url(industryCode=industry_code, pageSize=page_size)
         report.download_report(dir_name, file_name, json_url)
     # gen_readme_file(dir_name, industry_name_list)
     print('done')

@@ -1,2 +1,6 @@
-# eastmoney
- 抓取东方财富研报[农药兽药](gen\农药兽药.csv),
+研报名称,机构名称,发布时间,行业,研报地址
+2022年中国宠物食品企业对比：宠物食品新浪潮——中宠股份、佩蒂股份、路斯股份（摘要版）,头豹研究院,2023-02-17 00:00:00.000,农药兽药,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202302171583303535
+动保行业专题报告：他山之石：深度复盘海外动保龙头的发展路径,民生证券,2022-09-19 00:00:00.000,农药兽药,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202209191578499447
+基础化工农药：海外创制农化企业上半年及二季度经营情况,天风证券,2022-09-08 00:00:00.000,农药兽药,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202209081578139431
+农药：丙硫菌唑：登记证带来显著先发优势，国内龙头有望受益于海外推广,安信证券,2022-08-05 00:00:00.000,农药兽药,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202208051576944115
+农药行业：农药价格10月出现跳涨，行业供需拐点已至,国融证券,2021-12-06 00:00:00.000,农药兽药,https://data.eastmoney.com/report/zw_industry.jshtml?infocode=AP202112061533173390
