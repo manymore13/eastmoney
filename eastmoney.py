@@ -76,7 +76,7 @@ class EastMoneyReport:
 if __name__ == '__main__':
     report = EastMoneyReport()
 
-    industry_name_list = [['游戏行业', 1046], ['保险', 474], ['房地产服务', 1045]]
+    industry_name_list = [['游戏行业', 1046], ['保险', 474], ['房地产服务', 1045],['不限行业'],'*']
     for industry in industry_name_list:
         file_name = industry[0]
         industry_code = industry[1]
