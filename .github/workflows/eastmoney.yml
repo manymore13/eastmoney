@@ -1,11 +1,10 @@
-name: Action Practice
+name: eastmoney download report
 
 on:
   schedule:
     - cron: '0 0 * * *'
     - cron: '0 16 * * *'
-  push:
-    branches: ["main"]
+  workflow_dispatch:
 
 env:
   TZ: Asia/Shanghai
