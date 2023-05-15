@@ -126,7 +126,8 @@ class EastMoneyReport:
         return report_selector.xpath('//span[@class="to-link"]/a[@class="pdf-link"]/@href')[0]
 
     @classmethod
-    def __download_report_pdf(cls, dir_name, report_name, report_url):
+    def __download_report_pdf(cls, dir_name, report_name: str, report_url):
+        report_name = report_name.replace('/', '')
         pdf_url = cls.__get_report_pdf_link(report_url)
         content = requests.get(pdf_url).content
         with open(os.path.join(dir_name, report_name + '.pdf'), 'wb') as file:
