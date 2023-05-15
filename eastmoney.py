@@ -78,6 +78,11 @@ class EastMoneyReport:
         self.save_csv(dir_name, report_name, content_json)
 
 
+def gen_readme_file(industry_name_list):
+    with open(file_name, 'w', encoding='utf-8') as f:
+        f.write('')
+
+
 if __name__ == '__main__':
     file_name = 'industry.json'
     with open(file_name, 'r', encoding='utf-8') as f:
