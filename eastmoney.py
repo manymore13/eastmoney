@@ -127,7 +127,7 @@ class EastMoneyReport:
 
     @classmethod
     def __download_report_pdf(cls, dir_name, report_name: str, report_url):
-        report_name = report_name.replace('/', '')
+        report_name = re.sub('[/|；]', '', report_name)
         pdf_url = cls.__get_report_pdf_link(report_url)
         content = requests.get(pdf_url).content
         with open(os.path.join(dir_name, report_name + '.pdf'), 'wb') as file:
