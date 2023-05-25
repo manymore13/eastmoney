@@ -7,6 +7,13 @@ from selenium.webdriver.common.by import By
 import os
 
 
+def download_report(self, dir_name, industry_name, industryCode=None, beginTime=None, endTime=None, pageSize=None,
+                      pageNo=None, is_download_pdf=False):
+    delete_all_files(dir_name)
+    report_json_url = self.build_url(industryCode, beginTime, endTime, pageSize, pageNo)
+    content_json = self.get_report_json(report_json_url)
+    self.save_csv_and_pdf(dir_name, industry_name, content_json, is_download_pdf)
+
 def delete_all_files(dir_name):
     for f in os.listdir(dir_name):
         os.remove(os.path.join(dir_name, f))

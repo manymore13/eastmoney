@@ -1,3 +1,4 @@
+import asyncio
 import csv
 import json
 import os
@@ -107,8 +108,9 @@ class EastMoneyReport:
             for report_url, report_name in report_url_list:
                 self.__download_report_pdf(dir_name=dir_name, report_name=report_name, report_url=report_url)
 
-    def __download_report(self, dir_name, industry_name, industryCode=None, beginTime=None, endTime=None, pageSize=None,
-                          pageNo=None, is_download_pdf=False):
+    async def __download_report(self, dir_name, industry_name, industryCode=None, beginTime=None, endTime=None,
+                                pageSize=None,
+                                pageNo=None, is_download_pdf=False):
         utils.delete_all_files(dir_name)
         report_json_url = self.build_url(industryCode, beginTime, endTime, pageSize, pageNo)
         content_json = self.get_report_json(report_json_url)
@@ -133,23 +135,44 @@ class EastMoneyReport:
         with open(os.path.join(dir_name, report_name + '.pdf'), 'wb') as file:
             file.write(content)
 
-    def download_report_all(self, is_download_pdf=False):
+    def download_report_all(self, pageSize=None, pageNo=None, beginTime=None, endTime=None, is_download_pdf=False):
         """
         下载所有行业研报
+        :param endTime:
+        :param beginTime:
+        :param pageNo:
+        :param pageSize:
         :param is_download_pdf: 是否下载pdf研报,默认False不下载
         :return: None
         """
+        if beginTime is None:
+            beginTime = self.beginTime
 
+        if endTime is None:
+            endTime = datetime.now().strftime('%Y-%m-%d')
+
+        if pageNo is None:
+            pageNo = self.pageNo
+
+        if pageSize is None:
+            pageSize = self.pageSize
+
+        loop = asyncio.get_event_loop()
+        tasks = []
         dir_name = self.dir_name
         os.makedirs(dir_name, exist_ok=True)
-        end_time = datetime.now().strftime('%Y-%m-%d')
+        # end_time = datetime.now().strftime('%Y-%m-%d')
         for industry in self.industry_name_list:
             industry_name = industry['industry_name']
             child_dir_name = os.path.join(dir_name, industry_name)
             os.makedirs(child_dir_name, exist_ok=True)
             industry_code = industry['industry_code']
-            self.__download_report(dir_name=child_dir_name, industry_name=industry_name, industryCode=industry_code,
-                                   is_download_pdf=is_download_pdf, endTime=end_time)
+            asfun = self.__download_report(dir_name=child_dir_name, industry_name=industry_name,
+                                           industryCode=industry_code,
+                                           beginTime=beginTime, endTime=endTime, pageSize=pageSize, pageNo=pageNo,
+                                           is_download_pdf=is_download_pdf)
+            tasks.append(asyncio.ensure_future(asfun))
+        loop.run_until_complete(asyncio.wait(tasks))
 
     def download_report(self, industry_code_list, pageSize=None, pageNo=None, beginTime=None, endTime=None,
                         is_download_pdf=False):
@@ -163,6 +186,9 @@ class EastMoneyReport:
         :param is_download_pdf: 是否下载pdf研报，默认False不下载
         :return: None
         """
+
+        loop = asyncio.get_event_loop()
+
         self.asser_industry_code_list(industry_code_list)
         dir_name = self.dir_name
         os.makedirs(dir_name, exist_ok=True)
@@ -182,14 +208,18 @@ class EastMoneyReport:
                  'page_size': pageSize
                  }
             )
+        tasks = []
         for industry in industry_name_list:
             industry_name = industry['industry_name']
             child_dir_name = os.path.join(dir_name, industry_name)
             os.makedirs(child_dir_name, exist_ok=True)
             industry_code = industry['industry_code']
-            self.__download_report(dir_name=child_dir_name, industry_name=industry_name, industryCode=industry_code,
-                                   beginTime=beginTime, endTime=endTime, pageSize=pageSize, pageNo=pageNo,
-                                   is_download_pdf=is_download_pdf)
+            asfun = self.__download_report(dir_name=child_dir_name, industry_name=industry_name,
+                                           industryCode=industry_code,
+                                           beginTime=beginTime, endTime=endTime, pageSize=pageSize, pageNo=pageNo,
+                                           is_download_pdf=is_download_pdf)
+            tasks.append(asyncio.ensure_future(asfun))
+        loop.run_until_complete(asyncio.wait(tasks))
 
     def asser_industry_code_list(self, industry_code_list):
         for industry_code in industry_code_list:
@@ -208,7 +238,7 @@ class EastMoneyReport:
 
 if __name__ == '__main__':
     reportHelper = EastMoneyReport('gen')
-    reportHelper.download_report_all()
+    reportHelper.download_report_all(pageSize=20, is_download_pdf=True)
     # reportHelper.download_report(['*', '1030', '1045'], pageSize=10, is_download_pdf=True)
     # reportHelper.gen_readme_file()
     print('done')
