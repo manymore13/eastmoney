@@ -238,7 +238,7 @@ class EastMoneyReport:
 
 if __name__ == '__main__':
     reportHelper = EastMoneyReport('gen')
-    reportHelper.download_report_all(pageSize=20, is_download_pdf=True)
+    reportHelper.download_report_all(pageSize=5, is_download_pdf=True)
     # reportHelper.download_report(['*', '1030', '1045'], pageSize=10, is_download_pdf=True)
     # reportHelper.gen_readme_file()
     print('done')
