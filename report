@@ -1,0 +1,5 @@
+#!/bin/bash
+# 东方财富研报工具 - Unix/Linux/macOS 入口脚本
+# 使用方法: ./report query -t strategy -s 5
+
+python -m eastmoney "$@"

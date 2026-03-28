@@ -22,7 +22,9 @@ from datetime import datetime
 import lxml.html
 import requests
 
+import importlib
 import cli
+importlib.reload(cli)
 import report_client
 import utils
 
@@ -274,8 +276,8 @@ def handle_query(args):
         print('获取研报数据失败')
         return
     
-    # 解析研报
-    reports = client.parse_reports(data)
+    # 解析研报 (传入report_type用于过滤)
+    reports = client.parse_reports(data, report_type=args.type)
     
     if not reports:
         print('未找到研报')
@@ -325,7 +327,7 @@ def handle_download(args):
             )
             
             if data:
-                reports = client.parse_reports(data)
+                reports = client.parse_reports(data, report_type=args.type)
                 if reports:
                     client.download_reports(reports, args.output, report_type=industry['industry_name'])
     else:
@@ -344,8 +346,8 @@ def handle_download(args):
             print('获取研报数据失败')
             return
         
-        # 解析研报
-        reports = client.parse_reports(data)
+        # 解析研报 (传入report_type用于过滤)
+        reports = client.parse_reports(data, report_type=args.type)
         
         if not reports:
             print('未找到研报')
@@ -389,6 +391,12 @@ def handle_list(args):
     print(f'共 {len(industries)} 个行业\n')
 
 
+def handle_update(args):
+    """处理update命令"""
+    client = report_client.EastMoneyReportClient()
+    client.update_industry_data()
+
+
 def main():
     """主入口"""
     # 解析命令行参数
@@ -399,12 +407,26 @@ def main():
         return
     
     # 根据子命令调用对应的处理函数
-    if args.command == 'query':
+    # 支持简写: q/query, d/download, l/list
+    command_map = {
+        'q': 'query',
+        'query': 'query',
+        'd': 'download',
+        'download': 'download',
+        'l': 'list',
+        'list': 'list'
+    }
+    
+    cmd = command_map.get(args.command, args.command)
+    
+    if cmd == 'query':
         handle_query(args)
-    elif args.command == 'download':
+    elif cmd == 'download':
         handle_download(args)
-    elif args.command == 'list':
+    elif cmd == 'list':
         handle_list(args)
+    elif cmd == 'update':
+        handle_update(args)
 
 
 if __name__ == '__main__':

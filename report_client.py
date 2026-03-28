@@ -21,26 +21,51 @@ class ReportType:
     STOCK = 'stock'            # 个股研报
     STRATEGY = 'strategy'     # 策略报告
     MACRO = 'macro'           # 宏观研究
-    MORNING = 'morning'       # 券商晨报
+    MORNING = 'morning'       # 券商晨报 (综合)
 
 
-# 研报类型对应的qType值
-# 注意：东方财富API可能需要不同的接口来获取不同类型的研报
-# 以下参数基于API文档推测，需要进一步验证
+# 研报类型对应的qType值 (根据API文档)
+# /jg 接口: 宏观(qType=3), 策略(qType=2), 晨报(qType=4)
+# /list 接口: 行业(qType=1)
 REPORT_TYPE_QTYPE = {
-    ReportType.INDUSTRY: '1',  # 行业研报
-    ReportType.STOCK: '3',     # 个股研报 (待验证)
-    ReportType.STRATEGY: '3',  # 策略报告 (待验证)
-    ReportType.MACRO: '4',     # 宏观研究 (待验证)
-    ReportType.MORNING: '2',   # 券商晨报 (待验证)
+    ReportType.INDUSTRY: '1',  # 行业研报 (qType=1, /list)
+    ReportType.STOCK: '1',      # 个股研报 (qType=1, /list2 POST)
+    ReportType.STRATEGY: '2',   # 策略报告 (qType=2, /jg)
+    ReportType.MACRO: '3',      # 宏观研究 (qType=3, /jg)
+    ReportType.MORNING: '4',   # 券商晨报 (qType=4, /jg)
+}
+
+# column字段前缀与研报类型的对应关系 (使用前9位精确匹配)
+# 002001001xxx - 宏观研究
+# 002001002xxx - 策略报告 (含市场点评)
+# 002003001xxx - 券商晨报
+REPORT_TYPE_COLUMN_PREFIX = {
+    ReportType.MACRO: '002001001',      # 宏观研究
+    ReportType.STRATEGY: '002001002',   # 策略报告
+    ReportType.MORNING: '002003001',   # 券商晨报 (更精确匹配)
 }
 
 
 class EastMoneyReportClient:
     """东方财富研报API客户端"""
     
-    BASE_URL = 'https://reportapi.eastmoney.com/report/list'
+    # 行业研报和个股研报用 /list 接口
+    LIST_API_URL = 'https://reportapi.eastmoney.com/report/list'
+    # 宏观、策略、晨报用 /jg 接口
+    JG_API_URL = 'https://reportapi.eastmoney.com/report/jg'
+    # 个股研报用 /list2 接口 (POST)
+    LIST2_API_URL = 'https://reportapi.eastmoney.com/report/list2'
+    
     REPORT_INFO_URL = 'https://data.eastmoney.com/report/zw_industry.jshtml?infocode='
+    INDUSTRY_API_URL = 'https://datacenter.eastmoney.com/api/data/v1/get'
+    
+    # 不同类型研报的URL模板 (encodeUrl方式)
+    REPORT_URL_TEMPLATES = {
+        ReportType.INDUSTRY: 'https://data.eastmoney.com/report/zw_industry.jshtml?encodeUrl=',
+        ReportType.STRATEGY: 'https://data.eastmoney.com/report/zw_strategy.jshtml?encodeUrl=',
+        ReportType.MACRO: 'https://data.eastmoney.com/report/zw_macresearch.jshtml?encodeUrl=',
+        ReportType.MORNING: 'https://data.eastmoney.com/report/zw_morning.jshtml?encodeUrl=',
+    }
     
     def __init__(self, output_dir='./reports'):
         self.output_dir = output_dir
@@ -57,6 +82,56 @@ class EastMoneyReportClient:
                 return json.load(f)
         except FileNotFoundError:
             return []
+    
+    def update_industry_data(self):
+        """从东方财富API更新行业数据"""
+        print('正在从东方财富获取最新行业列表...')
+        
+        # 尝试从行业研报API获取完整行业列表
+        try:
+            # 使用较大的时间范围和pageSize来获取更多行业数据
+            params = {
+                'pageSize': 500,
+                'pageNo': 1,
+                'beginTime': '2020-01-01',  # 扩大时间范围
+                'endTime': '2026-12-31',
+                'qType': '1',
+                'industry': '*',
+                'industryCode': '*'
+            }
+            response = self.session.get(self.BASE_URL, params=params, timeout=30)
+            response.raise_for_status()
+            
+            data = response.json()
+            if data.get('data'):
+                # 从返回数据中提取行业列表
+                industries = {}
+                for item in data.get('data', []):
+                    ind_name = item.get('industryName', '')
+                    ind_code = item.get('industryCode', '')
+                    if ind_name and ind_code and ind_code not in industries:
+                        industries[ind_code] = {
+                            'industry_name': ind_name,
+                            'industry_code': ind_code,
+                            'page_size': 100
+                        }
+                
+                if industries:
+                    industry_list = list(industries.values())
+                    # 按行业代码排序
+                    industry_list.sort(key=lambda x: x['industry_code'])
+                    # 保存到文件
+                    with open('industry.json', 'w', encoding='utf-8') as f:
+                        json.dump(industry_list, f, ensure_ascii=False, indent=2)
+                    
+                    self.industry_data = industry_list
+                    print(f'成功更新 {len(industry_list)} 个行业')
+                    return True
+        except Exception as e:
+            print(f'API方式获取失败: {e}')
+        
+        print('无法在线更新，将使用内置的行业分类')
+        return False
     
     def get_industry_list(self):
         """获取行业列表"""
@@ -77,7 +152,13 @@ class EastMoneyReportClient:
     
     def build_url(self, report_type=ReportType.INDUSTRY, industry_code=None, stock_code=None,
                   page_no=1, page_size=20, begin_time=None, end_time=None):
-        """构建API请求URL"""
+        """构建API请求URL
+        
+        根据 report_type 选择正确的 API 接口:
+        - 行业研报: /list
+        - 策略/宏观/晨报: /jg
+        - 个股研报: /list2 (POST)
+        """
         # 设置默认时间
         if not begin_time:
             begin_time = (datetime.now().replace(day=1)).strftime('%Y-%m-%d')
@@ -87,7 +168,18 @@ class EastMoneyReportClient:
         # 获取qType
         q_type = REPORT_TYPE_QTYPE.get(report_type, '1')
         
-        # 构建参数 - 移除cb参数，直接返回JSON
+        # 根据研报类型选择正确的API接口
+        if report_type == ReportType.STOCK:
+            # 个股研报使用 /list2 接口 (POST)
+            base_url = self.LIST2_API_URL
+        elif report_type == ReportType.INDUSTRY:
+            # 行业研报使用 /list 接口
+            base_url = self.LIST_API_URL
+        else:
+            # 策略、宏观、晨报使用 /jg 接口
+            base_url = self.JG_API_URL
+        
+        # 构建参数
         params = {
             'pageSize': page_size,
             'pageNo': page_no,
@@ -106,15 +198,20 @@ class EastMoneyReportClient:
         if report_type == ReportType.INDUSTRY and industry_code:
             params['industryCode'] = industry_code
         elif report_type == ReportType.STOCK and stock_code:
-            params['stockCode'] = stock_code
+            params['code'] = stock_code  # 个股用 code 参数
         
         # 构建URL
-        url = self.BASE_URL + '?' + '&'.join([f'{k}={v}' for k, v in params.items()])
+        url = base_url + '?' + '&'.join([f'{k}={v}' for k, v in params.items()])
         return url
     
     def fetch_reports(self, report_type=ReportType.INDUSTRY, industry_code=None, stock_code=None,
                       page_no=1, page_size=20, begin_time=None, end_time=None):
-        """获取研报列表"""
+        """获取研报列表
+        
+        根据 report_type 使用 GET 或 POST 请求:
+        - 个股研报: POST 到 /list2
+        - 其他: GET 请求
+        """
         url = self.build_url(
             report_type=report_type,
             industry_code=industry_code,
@@ -128,7 +225,38 @@ class EastMoneyReportClient:
         print(f'请求URL: {url}')
         
         try:
-            response = self.session.get(url)
+            # 个股研报使用 POST 请求
+            if report_type == ReportType.STOCK:
+                # 从URL中提取参数构建POST body
+                from urllib.parse import urlparse, parse_qs
+                parsed = urlparse(url)
+                params = parse_qs(parsed.query)
+                
+                # 构建POST请求体
+                post_data = {
+                    'pageSize': page_size,
+                    'pageNo': page_no,
+                    'p': page_no,
+                    'pageNum': page_no,
+                    'pageNumber': page_no,
+                    'beginTime': begin_time or (datetime.now().replace(day=1)).strftime('%Y-%m-%d'),
+                    'endTime': end_time or datetime.now().strftime('%Y-%m-%d'),
+                    'code': stock_code if stock_code else '*',
+                    'industryCode': '*',
+                    'rating': None,
+                    'ratingChange': None,
+                    'orgCode': None,
+                    'rcode': ''
+                }
+                
+                response = self.session.post(
+                    self.LIST2_API_URL,
+                    json=post_data,
+                    headers={'Content-Type': 'application/json'}
+                )
+            else:
+                response = self.session.get(url)
+            
             response.raise_for_status()
             
             # 解析响应 - 可能是JSON或JSONP
@@ -162,13 +290,35 @@ class EastMoneyReportClient:
             print(f'响应内容: {text[:500]}...' if len(text) > 500 else f'响应内容: {text}')
             return None
     
-    def parse_reports(self, data):
-        """解析研报数据"""
+    def parse_reports(self, data, report_type=None):
+        """解析研报数据
+        
+        Args:
+            data: API返回的原始数据
+            report_type: 研报类型，用于过滤
+        """
         if not data or not data.get('data'):
             return []
         
         reports = []
         for item in data['data']:
+            # 策略/宏观/晨报使用 encodeUrl 字段
+            # 行业/个股研报使用 infoCode 字段
+            encode_url = item.get('encodeUrl', '')
+            info_code = item.get('infoCode', '')
+            
+            # 根据报告类型构建URL
+            if encode_url:
+                # 策略、宏观、晨报使用 encodeUrl
+                url_template = self.REPORT_URL_TEMPLATES.get(report_type, '')
+                if url_template:
+                    report_url = url_template + encode_url
+                else:
+                    report_url = self.REPORT_INFO_URL + info_code
+            else:
+                # 行业研报使用 infoCode
+                report_url = self.REPORT_INFO_URL + info_code
+            
             report = {
                 'title': item.get('title', ''),
                 'org_name': item.get('orgSName', ''),       # 机构名称
@@ -176,10 +326,12 @@ class EastMoneyReportClient:
                 'industry_name': item.get('industryName', ''),  # 行业
                 'stock_name': item.get('stockName', ''),     # 股票名称
                 'stock_code': item.get('stockCode', ''),     # 股票代码
-                'info_code': item.get('infoCode', ''),       # 研报ID
+                'info_code': info_code or encode_url,        # 兼容两种ID
+                'encode_url': encode_url,                     # 策略/宏观/晨报专用
                 'report_type': item.get('reportType', ''),   # 研报类型
                 'rating_name': item.get('ratingName', ''),   # 评级
-                'url': self.REPORT_INFO_URL + item.get('infoCode', '')
+                'column': item.get('column', ''),            # 栏目标识
+                'url': report_url
             }
             reports.append(report)
         

@@ -16,7 +16,7 @@ build/
 *.swp
 *.swo
 
-# Reports
+# Reports (output directories)
 reports/
 test_reports/
 test_pdf/
