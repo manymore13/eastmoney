@@ -69,12 +69,17 @@ class ModernButton(QPushButton):
             if not self.isEnabled():
                 return
             self.setEnabled(False)
-            self._debounce_timer.timeout.connect(slot)
+            # 断开之前的定时器连接
+            try:
+                self._debounce_timer.timeout.disconnect()
+            except:
+                pass
+            # 定时器到期后重新启用按钮
             self._debounce_timer.timeout.connect(lambda: self.setEnabled(True))
-            self._debounce_timer.timeout.disconnect()  # 断开连接避免重复
             self._debounce_timer.start(self._debounce_duration)
+            # 执行操作
             slot()
-        
+
         # 先断开之前的连接
         try:
             self.clicked.disconnect()
@@ -142,6 +147,7 @@ class MainWindow(QWidget):
         # 待下载列表
         self.download_list = []  # 已选中的研报列表
         self._processing_checkbox = False  # 防止重复处理
+        self._checked_reports = {}  # 保存勾选状态 {report_id: True/False}
 
         # 行业数据
         self.industry_data = {}
@@ -456,26 +462,26 @@ class MainWindow(QWidget):
         # 首页/上一页
         first_btn = ModernButton("首页")
         first_btn.setFixedWidth(60)
-        first_btn.set_debounce_duration(500)
+        first_btn.set_debounce_duration(200)
         first_btn.debounce_click(self.on_first_page)
         page_layout.addWidget(first_btn)
 
         prev_btn = ModernButton("◀")
         prev_btn.setFixedWidth(40)
-        prev_btn.set_debounce_duration(500)
+        prev_btn.set_debounce_duration(200)
         prev_btn.debounce_click(self.on_prev_page)
         page_layout.addWidget(prev_btn)
 
         # 下一页/末页
         next_btn = ModernButton("▶")
         next_btn.setFixedWidth(40)
-        next_btn.set_debounce_duration(500)
+        next_btn.set_debounce_duration(200)
         next_btn.debounce_click(self.on_next_page)
         page_layout.addWidget(next_btn)
 
         last_btn = ModernButton("末页")
         last_btn.setFixedWidth(60)
-        last_btn.set_debounce_duration(500)
+        last_btn.set_debounce_duration(200)
         last_btn.debounce_click(self.on_last_page)
         page_layout.addWidget(last_btn)
 
@@ -785,13 +791,14 @@ class MainWindow(QWidget):
         for row, report in enumerate(self.current_reports):
             # 确保研报类型信息存在
             report["_report_type"] = self.current_report_type
-            
-            # 检查是否已在待下载列表中
-            is_in_download_list = any(r.get("info_code") == report.get("info_code") for r in self.download_list)
-            
+
+            # 获取唯一标识并检查保存的勾选状态
+            report_id = self.get_report_id(report)
+            is_checked = self._checked_reports.get(report_id, False)
+
             # 选择框
             checkbox = QTableWidgetItem()
-            checkbox.setCheckState(Qt.Checked if is_in_download_list else Qt.Unchecked)
+            checkbox.setCheckState(Qt.Checked if is_checked else Qt.Unchecked)
             checkbox.setData(Qt.UserRole, report)
             self.report_table.setItem(row, 0, checkbox)
             
@@ -872,6 +879,16 @@ class MainWindow(QWidget):
         finally:
             self._processing_checkbox = False
 
+    def get_report_id(self, report):
+        """获取研报唯一标识"""
+        # 优先使用 infoCode，其次使用 title + publishDate 组合
+        info_code = report.get("info_code", "")
+        if info_code:
+            return info_code
+        title = report.get("title", "")
+        publish_date = report.get("publishDate", "")[:10]
+        return f"{title}_{publish_date}"
+
     def process_checkbox_change(self, item):
         """处理复选框状态变化"""
         # 忽略还没有创建 download_list_btn 的情况
@@ -883,30 +900,36 @@ class MainWindow(QWidget):
         if not report:
             return
 
-        # 使用标题作为唯一标识（更可靠）
-        title = report.get("title", "")
-        if not title:
+        # 获取唯一标识
+        report_id = self.get_report_id(report)
+        if not report_id:
             return
+
+        # 检查这个研报是否在当前显示的列表中
+        # 如果不在，说明是页面切换时旧数据触发的信号，直接忽略
+        current_ids = [self.get_report_id(r) for r in self.current_reports]
+        if report_id not in current_ids:
+            return
+
+        # 保存勾选状态
+        is_checked = item.checkState() == Qt.Checked
+        self._checked_reports[report_id] = is_checked
 
         # 确保研报类型存在
         if "_report_type" not in report:
             report["_report_type"] = self.current_report_type
 
-        # 使用标题检查是否已存在
-        existing_index = None
-        for i, r in enumerate(self.download_list):
-            if r.get("title") == title:
-                existing_index = i
-                break
-
-        if item.checkState() == Qt.Checked:
+        if is_checked:
             # 勾选：添加到待下载列表（去重）
-            if existing_index is None:
+            existing_ids = [self.get_report_id(r) for r in self.download_list]
+            if report_id not in existing_ids:
                 self.download_list.append(report)
         else:
             # 取消勾选：从待下载列表移除
-            if existing_index is not None:
-                self.download_list.pop(existing_index)
+            for i, r in enumerate(self.download_list):
+                if self.get_report_id(r) == report_id:
+                    self.download_list.pop(i)
+                    break
 
         # 更新待下载数量显示
         self.update_download_list_count()
