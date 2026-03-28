@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>东方财富研报下载工具 - 命令行研报获取利器</title>
+    <title>东方财富研报下载工具 | EastMoney Reports Downloader</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #1a73e8;
-            --primary-dark: #1557b0;
-            --accent: #34a853;
-            --bg-dark: #0d1117;
-            --bg-card: #161b22;
-            --bg-input: #21262d;
-            --text-primary: #f0f6fc;
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
             --text-secondary: #8b949e;
-            --border: #30363d;
-            --code-bg: #1e1e1e;
+            --accent-green: #3fb950;
+            --accent-blue: #58a6ff;
+            --accent-purple: #a371f7;
+            --accent-orange: #f0883e;
+            --border-color: #30363d;
+            --code-bg: #1c2128;
         }
 
         * {
@@ -29,36 +30,48 @@
 
         body {
             font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-dark);
+            background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
         }
 
-        /* 背景效果 */
-        .bg-pattern {
+        /* 渐变背景 */
+        .bg-gradient {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background: 
-                radial-gradient(ellipse at 20% 20%, rgba(26, 115, 232, 0.15) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(52, 168, 83, 0.1) 0%, transparent 50%),
-                linear-gradient(180deg, var(--bg-dark) 0%, #0a0e14 100%);
+                radial-gradient(ellipse at 20% 20%, rgba(88, 166, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(163, 113, 247, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(63, 185, 80, 0.05) 0%, transparent 70%);
             z-index: -1;
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 0 24px;
         }
 
         /* Header */
         header {
-            padding: 32px 0;
+            padding: 60px 0 40px;
             text-align: center;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .logo {
@@ -69,21 +82,22 @@
         }
 
         .logo-icon {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: 14px;
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
-            box-shadow: 0 8px 32px rgba(26, 115, 232, 0.3);
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
         }
 
         h1 {
             font-size: 2.5rem;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            background: linear-gradient(135deg, var(--text-primary), var(--accent-blue));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -91,21 +105,45 @@
 
         .tagline {
             color: var(--text-secondary);
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             margin-top: 8px;
+        }
+
+        /* Badge */
+        .badges {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
         }
 
         /* 特性卡片 */
         .features {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin: 48px 0;
+            gap: 16px;
+            margin: 40px 0;
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .feature-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 24px;
             text-align: center;
@@ -113,9 +151,8 @@
         }
 
         .feature-card:hover {
+            border-color: var(--accent-blue);
             transform: translateY(-4px);
-            border-color: var(--primary);
-            box-shadow: 0 8px 24px rgba(26, 115, 232, 0.15);
         }
 
         .feature-icon {
@@ -124,7 +161,7 @@
         }
 
         .feature-title {
-            font-weight: 500;
+            font-weight: 600;
             margin-bottom: 8px;
         }
 
@@ -133,26 +170,31 @@
             font-size: 0.9rem;
         }
 
-        /* 命令演示 */
-        .demo-section {
-            margin: 48px 0;
+        /* Terminal */
+        .terminal-section {
+            margin: 50px 0;
+            animation: fadeIn 0.8s ease-out 0.4s both;
         }
 
         .section-title {
             text-align: center;
             font-size: 1.5rem;
             margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .terminal {
             background: var(--code-bg);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
         }
 
         .terminal-header {
-            background: #2d2d2d;
+            background: var(--bg-tertiary);
             padding: 12px 16px;
             display: flex;
             align-items: center;
@@ -167,18 +209,19 @@
 
         .dot-red { background: #ff5f56; }
         .dot-yellow { background: #ffbd2e; }
-        .dot-green { background: #27ca40; }
+        .dot-green { background: #27c93f; }
 
         .terminal-title {
             margin-left: 12px;
             color: var(--text-secondary);
             font-size: 0.85rem;
+            font-family: 'Fira Code', monospace;
         }
 
         .terminal-body {
-            padding: 24px;
+            padding: 20px;
             font-family: 'Fira Code', monospace;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .command-block {
@@ -186,67 +229,68 @@
         }
 
         .command-label {
-            color: var(--accent);
-            font-weight: 500;
+            color: var(--accent-purple);
+            font-size: 0.8rem;
             margin-bottom: 6px;
         }
 
         .command {
-            color: var(--text-primary);
-            background: var(--bg-input);
-            padding: 12px 16px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            background: rgba(0,0,0,0.3);
+            padding: 10px 14px;
+            border-radius: 6px;
+            color: var(--accent-green);
+            border-left: 3px solid var(--accent-green);
         }
 
-        .prompt {
-            color: var(--primary);
-            font-weight: 500;
+        .command-comment {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 4px;
+            font-family: 'Noto Sans SC', sans-serif;
         }
 
-        .comment {
+        .command-result {
             color: var(--text-secondary);
             font-size: 0.85rem;
+            margin-top: 8px;
+            padding-left: 14px;
         }
 
-        /* 安装步骤 */
-        .install-section {
-            margin: 48px 0;
-        }
-
-        .steps {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
+        /* 快速入门 */
+        .quickstart {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            margin: 40px 0;
+            animation: fadeIn 0.8s ease-out 0.6s both;
         }
 
         .step {
             display: flex;
-            align-items: flex-start;
             gap: 16px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
+            margin-bottom: 24px;
+            align-items: flex-start;
+        }
+
+        .step:last-child {
+            margin-bottom: 0;
         }
 
         .step-number {
-            width: 36px;
-            height: 36px;
-            background: var(--primary);
+            width: 32px;
+            height: 32px;
+            background: var(--accent-blue);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
+            font-weight: bold;
             flex-shrink: 0;
         }
 
         .step-content h3 {
-            font-size: 1.1rem;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .step-content p {
@@ -255,277 +299,290 @@
         }
 
         .step-code {
-            background: var(--bg-input);
+            background: var(--code-bg);
             padding: 10px 14px;
             border-radius: 6px;
             font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            color: var(--accent-green);
             margin-top: 10px;
-            display: inline-block;
         }
 
-        /* 研报类型 */
-        .types-section {
-            margin: 48px 0;
+        /* 用例 */
+        .usecases {
+            margin: 50px 0;
+            animation: fadeIn 0.8s ease-out 0.8s both;
         }
 
-        .types-grid {
+        .usecase-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
+            gap: 20px;
         }
 
-        .type-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
+        .usecase-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 20px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .usecase-card:hover {
+            border-color: var(--accent-orange);
+        }
+
+        .usecase-title {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 10px;
+            font-weight: 600;
+            margin-bottom: 16px;
         }
 
-        .type-icon {
-            font-size: 1.8rem;
+        .usecase-title .icon {
+            font-size: 1.2rem;
         }
 
-        .type-info h3 {
-            font-size: 1rem;
-            margin-bottom: 4px;
-        }
-
-        .type-info p {
-            color: var(--text-secondary);
+        .usecase-command {
+            background: var(--code-bg);
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
             font-size: 0.85rem;
+            color: var(--accent-green);
+            margin-bottom: 10px;
         }
 
-        /* 底部 */
-        footer {
-            text-align: center;
-            padding: 48px 0;
+        .usecase-desc {
             color: var(--text-secondary);
             font-size: 0.9rem;
+        }
+
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 60px 0;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            margin-top: 60px;
+            animation: fadeIn 0.8s ease-out 1s both;
         }
 
         .footer-links {
             display: flex;
-            justify-content: center;
             gap: 24px;
-            margin-bottom: 16px;
+            justify-content: center;
+            margin-bottom: 20px;
         }
 
         .footer-links a {
-            color: var(--text-secondary);
+            color: var(--accent-blue);
             text-decoration: none;
             transition: color 0.2s;
         }
 
         .footer-links a:hover {
-            color: var(--primary);
+            color: var(--accent-purple);
         }
 
         /* 响应式 */
-        @media (max-width: 768px) {
+        @media (max-width: 640px) {
             h1 {
                 font-size: 1.8rem;
             }
             
+            .container {
+                padding: 0 16px;
+            }
+            
             .terminal-body {
-                font-size: 0.85rem;
-                padding: 16px;
+                font-size: 0.8rem;
+                padding: 14px;
             }
             
             .features {
                 grid-template-columns: 1fr;
             }
         }
-
-        /* 动画 */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-in {
-            animation: fadeInUp 0.6s ease forwards;
-        }
-
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-        .delay-4 { animation-delay: 0.4s; }
     </style>
 </head>
 <body>
-    <div class="bg-pattern"></div>
+    <div class="bg-gradient"></div>
     
     <div class="container">
-        <!-- Header -->
-        <header class="animate-in">
+        <header>
             <div class="logo">
-                <div class="logo-icon">📊</div>
+                <div class="logo-icon">EM</div>
+                <h1>东方财富研报下载</h1>
             </div>
-            <h1>东方财富研报下载工具</h1>
-            <p class="tagline">命令行获取研报 PDF，量化分析的得力助手</p>
+            <p class="tagline">命令行一键下载研报，告别手动一个个保存</p>
+            
+            <div class="badges">
+                <span class="badge">🖥️ Windows</span>
+                <span class="badge">🍎 macOS</span>
+                <span class="badge">🐧 Linux</span>
+                <span class="badge">⬇️ PDF下载</span>
+                <span class="badge">📊 CSV导出</span>
+            </div>
         </header>
 
         <!-- 特性 -->
-        <section class="features animate-in delay-1">
+        <section class="features">
             <div class="feature-card">
-                <div class="feature-icon">📥</div>
-                <div class="feature-title">批量下载</div>
-                <div class="feature-desc">支持批量下载行业、策略、宏观等各类研报 PDF</div>
+                <div class="feature-icon">📋</div>
+                <div class="feature-title">查询研报</div>
+                <div class="feature-desc">快速查找行业、策略、个股等各类研报</div>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🔍</div>
-                <div class="feature-title">灵活查询</div>
-                <div class="feature-desc">按行业、股票、日期多维度筛选研报</div>
+                <div class="feature-icon">📥</div>
+                <div class="feature-title">下载PDF</div>
+                <div class="feature-desc">一键批量下载研报PDF到本地</div>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📊</div>
-                <div class="feature-title">数据导出</div>
-                <div class="feature-desc">支持 CSV 导出，方便数据分析</div>
+                <div class="feature-title">导出数据</div>
+                <div class="feature-desc">导出为CSV，Excel打开直接看</div>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🌐</div>
-                <div class="feature-title">跨平台</div>
-                <div class="feature-desc">Windows / macOS / Linux 均可使用</div>
+                <div class="feature-icon">🔍</div>
+                <div class="feature-title">搜索行业</div>
+                <div class="feature-desc">按行业、股票代码精准筛选</div>
             </div>
         </section>
 
-        <!-- 命令演示 -->
-        <section class="demo-section animate-in delay-2">
-            <h2 class="section-title">快速上手</h2>
+        <!-- 终端演示 -->
+        <section class="terminal-section">
+            <h2 class="section-title">
+                <span>💻</span> 试试这些命令
+            </h2>
+            
             <div class="terminal">
                 <div class="terminal-header">
                     <span class="terminal-dot dot-red"></span>
                     <span class="terminal-dot dot-yellow"></span>
                     <span class="terminal-dot dot-green"></span>
-                    <span class="terminal-title">Terminal</span>
+                    <span class="terminal-title">终端 / Command Prompt</span>
                 </div>
                 <div class="terminal-body">
                     <div class="command-block">
-                        <div class="command-label"># 查看所有行业</div>
-                        <div class="command">
-                            <span class="prompt">$</span> report list
-                        </div>
+                        <div class="command-label">① 查看有哪些行业</div>
+                        <div class="command">report list</div>
+                        <div class="command-comment"># 运行后你会看到所有行业列表：游戏、医疗、新能源...</div>
                     </div>
+                    
                     <div class="command-block">
-                        <div class="command-label"># 查询游戏行业研报</div>
-                        <div class="command">
-                            <span class="prompt">$</span> report query -i 1046
-                            <span class="comment"># -i 指定行业代码</span>
-                        </div>
+                        <div class="command-label">② 查询游戏行业的研报（看最近5篇）</div>
+                        <div class="command">report query -i 1046 -s 5</div>
+                        <div class="command-comment"># -i 1046 是游戏行业的代码，-s 5 是要5篇</div>
                     </div>
+                    
                     <div class="command-block">
-                        <div class="command-label"># 下载研报 PDF</div>
-                        <div class="command">
-                            <span class="prompt">$</span> report download -i 1046 -s 5 -o ./reports
-                            <span class="comment"># -s 数量 -o 输出目录</span>
-                        </div>
-                    </div>
-                    <div class="command-block">
-                        <div class="command-label"># 查询策略报告</div>
-                        <div class="command">
-                            <span class="prompt">$</span> report query -t strategy -s 10
-                        </div>
-                    </div>
-                    <div class="command-block">
-                        <div class="command-label"># 查询个股研报（如茅台）</div>
-                        <div class="command">
-                            <span class="prompt">$</span> report query -t stock -c 600519
-                        </div>
+                        <div class="command-label">③ 想知道更多玩法？</div>
+                        <div class="command">report -h</div>
+                        <div class="command-comment"># 查看所有命令和参数说明</div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 安装 -->
-        <section class="install-section animate-in delay-3">
-            <h2 class="section-title">安装</h2>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>克隆项目</h3>
-                        <p>将项目克隆到本地</p>
-                        <div class="step-code">git clone https://github.com/yourusername/eastmoney-reports.git</div>
-                    </div>
+        <!-- 快速入门 -->
+        <section class="quickstart">
+            <h2 class="section-title" style="margin-bottom: 32px;">
+                <span>🚀</span> 3分钟快速入门
+            </h2>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>下载项目</h3>
+                    <p>打开终端，把项目克隆到本地：</p>
+                    <div class="step-code">git clone https://github.com/manymore13/eastmoney.git</div>
                 </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>安装依赖</h3>
-                        <p>安装 Python 依赖包</p>
-                        <div class="step-code">pip install -r requirements.txt</div>
-                    </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>安装依赖</h3>
+                    <p>进入文件夹，安装Python依赖：</p>
+                    <div class="step-code">cd eastmoney && pip install -r requirements.txt</div>
                 </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>开始使用</h3>
-                        <p>运行命令获取研报</p>
-                        <div class="step-code">report list</div>
-                    </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>开始使用！</h3>
+                    <p>运行下面的命令，看看效果：</p>
+                    <div class="step-code">report list</div>
                 </div>
             </div>
         </section>
 
-        <!-- 研报类型 -->
-        <section class="types-section animate-in delay-4">
-            <h2 class="section-title">支持的研报类型</h2>
-            <div class="types-grid">
-                <div class="type-card">
-                    <div class="type-icon">🏭</div>
-                    <div class="type-info">
-                        <h3>行业研报</h3>
-                        <p>分析特定行业发展趋势的研报</p>
+        <!-- 常见场景 -->
+        <section class="usecases">
+            <h2 class="section-title">
+                <span>💡</span> 常见用法示例
+            </h2>
+            
+            <div class="usecase-grid">
+                <div class="usecase-card">
+                    <div class="usecase-title">
+                        <span class="icon">🎮</span> 查看游戏行业研报
                     </div>
+                    <div class="usecase-command">report query -i 1046 -s 10</div>
+                    <div class="usecase-desc">查询游戏行业（代码1046）的最新10篇研报</div>
                 </div>
-                <div class="type-card">
-                    <div class="type-icon">📈</div>
-                    <div class="type-info">
-                        <h3>策略报告</h3>
-                        <p>市场分析、投资策略类报告</p>
+                
+                <div class="usecase-card">
+                    <div class="usecase-title">
+                        <span class="icon">📈</span> 看策略报告
                     </div>
+                    <div class="usecase-command">report query -t strategy -s 5</div>
+                    <div class="usecase-desc">看券商对市场行情的分析报告</div>
                 </div>
-                <div class="type-card">
-                    <div class="type-icon">🌍</div>
-                    <div class="type-info">
-                        <h3>宏观研究</h3>
-                        <p>宏观经济形势研究报告</p>
+                
+                <div class="usecase-card">
+                    <div class="usecase-title">
+                        <span class="icon">🍷</span> 看茅台的研报
                     </div>
+                    <div class="usecase-command">report query -t stock -c 600519</div>
+                    <div class="usecase-desc">查询贵州茅台（600519）的个股研报</div>
                 </div>
-                <div class="type-card">
-                    <div class="type-icon">📰</div>
-                    <div class="type-info">
-                        <h3>券商晨报</h3>
-                        <p>每日早晨的简短资讯汇总</p>
+                
+                <div class="usecase-card">
+                    <div class="usecase-title">
+                        <span class="icon">📥</span> 下载PDF保存
                     </div>
+                    <div class="usecase-command">report download -i 1046 -s 3 -o ./reports</div>
+                    <div class="usecase-desc">下载游戏行业最新3篇研报的PDF</div>
                 </div>
-                <div class="type-card">
-                    <div class="type-icon">📉</div>
-                    <div class="type-info">
-                        <h3>个股研报</h3>
-                        <p>分析特定股票的研究报告</p>
+                
+                <div class="usecase-card">
+                    <div class="usecase-title">
+                        <span class="icon">📊</span> 导出到Excel
                     </div>
+                    <div class="usecase-command">report query -i 1046 --save-csv</div>
+                    <div class="usecase-desc">查询结果保存为CSV文件，可用Excel打开</div>
+                </div>
+                
+                <div class="usecase-card">
+                    <div class="usecase-title">
+                        <span class="icon">🔎</span> 搜索行业
+                    </div>
+                    <div class="usecase-command">report list -s 新能源</div>
+                    <div class="usecase-desc">搜索包含"新能源"关键词的行业</div>
                 </div>
             </div>
         </section>
 
-        <!-- Footer -->
         <footer>
             <div class="footer-links">
                 <a href="https://github.com/manymore13/eastmoney">GitHub</a>
-                <a href="https://github.com/manymore13/eastmoney/issues">反馈问题</a>
+                <a href="https://github.com/manymore13/eastmoney/issues">问题反馈</a>
             </div>
-            <p>MIT License · 仅供学习研究使用</p>
+            <p>让研报下载更简单 ✨</p>
         </footer>
     </div>
 </body>
