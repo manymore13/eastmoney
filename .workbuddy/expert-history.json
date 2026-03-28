@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "sessions": {
+    "09dc67a6c9c14b90847c8704cf84747f": [
+      {
+        "expertId": "AgentOrchestrator",
+        "name": "Demi",
+        "profession": "智能体编排师",
+        "avatarUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/avatars/11-ProfessionalServices/AgentOrchestrator/AgentOrchestrator.png",
+        "promptUrl": "https://acc-1258344699.cos.accelerate.myqcloud.com/workbuddy/experts/experts/11-ProfessionalServices/AgentOrchestrator/AgentOrchestrator_zh.md",
+        "usedAt": 1774664279159,
+        "industryId": "all"
+      }
+    ]
+  },
+  "lastUpdated": 1774666864396
+}

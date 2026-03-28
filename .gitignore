@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Reports
+reports/
+test_reports/
+test_pdf/
+test_pdf2/
+gen/
+new/
+
+# 测试文件
+test_*.py
+*_test.py
+
+# 系统文件
+.DS_Store
+Thumbs.db

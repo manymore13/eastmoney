@@ -1,0 +1,411 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+东方财富研报工具
+支持命令行查询和下载行业研报、个股研报、策略报告、宏观研究、券商晨报
+
+使用方法:
+    python -m eastmoney query --type industry --industry 1046
+    python -m eastmoney download --type industry --industry 1046 --output ./reports
+    python -m eastmoney list
+"""
+
+import asyncio
+import csv
+import json
+import os
+import re
+import sys
+import time
+from datetime import datetime
+
+import lxml.html
+import requests
+
+import cli
+import report_client
+import utils
+
+
+class EastMoneyReport:
+    """东方财富研报类 - 兼容旧版API"""
+    
+    east_money_url = 'https://reportapi.eastmoney.com/report/list?cb=datatable1808538&industryCode={' \
+                     'industryCode}&pageSize={pageSize}&industry=*&rating=*&ratingChange=*&beginTime={' \
+                     'beginTime}&endTime={endTime}&pageNo={pageNo}&fields=&qType=1&orgCode=&rcode=&_={time}'
+
+    report_info_url = 'https://data.eastmoney.com/report/zw_industry.jshtml?infocode='
+
+    def __init__(self, dir_name=None):
+        """
+        研报助手
+        :param dir_name: 研报存放的位置,目录
+        """
+        self.beginTime = '2021-05-14'
+        self.endTime = '2023-05-14'
+        self.pageSize = '50'
+        self.industryCode = '1046'
+        self.pageNo = '1'
+        self.dir_name = dir_name
+        if dir_name is None:
+            self.dir_name = 'gen'
+        self.industry_name_list = self.load_industry()
+        self.industry_code_dic = self.load_code_dic(self.industry_name_list)
+
+    @classmethod
+    def load_code_dic(cls, industry_name_list):
+        industry_code_dic = {}
+        for industry in industry_name_list:
+            industry_code_dic[industry['industry_code']] = industry['industry_name']
+        return industry_code_dic
+
+    @classmethod
+    def load_industry(cls):
+        file_name = 'industry.json'
+        with open(file_name, 'r', encoding='utf-8') as f:
+            return json.load(f)
+
+    def build_url(self, industryCode=None, beginTime=None, endTime=None, pageSize=None, pageNo=None):
+        if beginTime is None:
+            beginTime = self.beginTime
+
+        if beginTime is None:
+            beginTime = self.beginTime
+
+        if endTime is None:
+            endTime = self.endTime
+
+        if pageSize is None:
+            pageSize = self.pageSize
+
+        if pageNo is None:
+            pageNo = self.pageNo
+
+        if industryCode is None:
+            industryCode = self.industryCode
+
+        cur_time = int(time.time())
+        report_url = self.east_money_url.format(industryCode=industryCode, pageSize=pageSize,
+                                                beginTime=beginTime,
+                                                endTime=endTime, pageNo=pageNo, time=cur_time)
+        print('start get :' + report_url)
+        return report_url
+
+    @classmethod
+    def get_report_json(cls, report_json_url):
+        report_content = requests.get(report_json_url).text
+        report_content = re.search('\((.+)\)', report_content).group(1)
+        return report_content
+
+    @classmethod
+    def save_json(cls, dir_name, report_name, content):
+        with open(os.path.join(dir_name, report_name + '.json'), 'w', encoding='utf-8') as file:
+            file.write(content)
+
+    def save_csv_and_pdf(self, dir_name, industry_name, content_json, is_download_pdf=False):
+        report_list = json.loads(content_json)['data']
+        report_list_data = []
+        report_url_list = []
+        for report in report_list:
+            report_url = self.report_info_url + report['infoCode']
+            report_name = report['title']
+            report_data = {'研报名称': report['title'], '机构名称': report['orgSName'],
+                           '发布时间': report['publishDate'],
+                           '行业': report['industryName'],
+                           '研报地址': report_url}
+            report_list_data.append(report_data)
+            report_url_list.append([report_url, report_name])
+
+        with open(os.path.join(dir_name, industry_name + '.csv'), 'w', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=['研报名称', '机构名称', '发布时间', '行业', '研报地址'])
+            writer.writeheader()
+            writer.writerows(report_list_data)
+
+        if is_download_pdf is True:
+            for report_url, report_name in report_url_list:
+                self.__download_report_pdf(dir_name=dir_name, report_name=report_name, report_url=report_url)
+
+    async def __download_report(self, dir_name, industry_name, industryCode=None, beginTime=None, endTime=None,
+                                pageSize=None,
+                                pageNo=None, is_download_pdf=False):
+        utils.delete_all_files(dir_name)
+        report_json_url = self.build_url(industryCode, beginTime, endTime, pageSize, pageNo)
+        content_json = self.get_report_json(report_json_url)
+        self.save_csv_and_pdf(dir_name, industry_name, content_json, is_download_pdf)
+
+    @classmethod
+    def __get_report_pdf_link(cls, report_url):
+        """
+        获取研报链接
+        :param report_url:
+        :return:
+        """
+        report_html = requests.get(report_url).content.decode('utf-8')
+        report_selector = lxml.html.fromstring(report_html)
+        return report_selector.xpath('//span[@class="to-link"]/a[@class="pdf-link"]/@href')[0]
+
+    @classmethod
+    def __download_report_pdf(cls, dir_name, report_name: str, report_url):
+        report_name = re.sub('[/|；]', '', report_name)
+        pdf_url = cls.__get_report_pdf_link(report_url)
+        content = requests.get(pdf_url).content
+        with open(os.path.join(dir_name, report_name + '.pdf'), 'wb') as file:
+            file.write(content)
+
+    def download_report_all(self, pageSize=None, pageNo=None, beginTime=None, endTime=None, is_download_pdf=False):
+        """
+        下载所有行业研报
+        :param endTime:
+        :param beginTime:
+        :param pageNo:
+        :param pageSize:
+        :param is_download_pdf: 是否下载pdf研报,默认False不下载
+        :return: None
+        """
+        if beginTime is None:
+            beginTime = self.beginTime
+
+        if endTime is None:
+            endTime = datetime.now().strftime('%Y-%m-%d')
+
+        if pageNo is None:
+            pageNo = self.pageNo
+
+        if pageSize is None:
+            pageSize = self.pageSize
+
+        loop = asyncio.get_event_loop()
+        tasks = []
+        dir_name = self.dir_name
+        os.makedirs(dir_name, exist_ok=True)
+        # end_time = datetime.now().strftime('%Y-%m-%d')
+        for industry in self.industry_name_list:
+            industry_name = industry['industry_name']
+            child_dir_name = os.path.join(dir_name, industry_name)
+            os.makedirs(child_dir_name, exist_ok=True)
+            industry_code = industry['industry_code']
+            asfun = self.__download_report(dir_name=child_dir_name, industry_name=industry_name,
+                                           industryCode=industry_code,
+                                           beginTime=beginTime, endTime=endTime, pageSize=pageSize, pageNo=pageNo,
+                                           is_download_pdf=is_download_pdf)
+            tasks.append(asyncio.ensure_future(asfun))
+        loop.run_until_complete(asyncio.wait(tasks))
+
+    def download_report(self, industry_code_list, pageSize=None, pageNo=None, beginTime=None, endTime=None,
+                        is_download_pdf=False):
+        """
+        下载指定行业研报
+        :param industry_code_list: 数组类型 ,比如 ['*', '1030', '1045']
+        :param pageSize: 一页多少个数据
+        :param pageNo: 页码 从1开始
+        :param beginTime: 开始时间 比如: 2020-05-16
+        :param endTime: 结束时间 比如: 2023-05-16
+        :param is_download_pdf: 是否下载pdf研报，默认False不下载
+        :return: None
+        """
+
+        loop = asyncio.get_event_loop()
+
+        self.asser_industry_code_list(industry_code_list)
+        dir_name = self.dir_name
+        os.makedirs(dir_name, exist_ok=True)
+        if beginTime is None:
+            beginTime = self.beginTime
+
+        if endTime is None:
+            endTime = datetime.now().strftime('%Y-%m-%d')
+        if pageNo is None:
+            pageNo = self.pageNo
+
+        industry_name_list = []
+        for industry_code in industry_code_list:
+            industry_name_list.append(
+                {'industry_name': self.industry_code_dic[industry_code],
+                 'industry_code': str(industry_code),
+                 'page_size': pageSize
+                 }
+            )
+        tasks = []
+        for industry in industry_name_list:
+            industry_name = industry['industry_name']
+            child_dir_name = os.path.join(dir_name, industry_name)
+            os.makedirs(child_dir_name, exist_ok=True)
+            industry_code = industry['industry_code']
+            asfun = self.__download_report(dir_name=child_dir_name, industry_name=industry_name,
+                                           industryCode=industry_code,
+                                           beginTime=beginTime, endTime=endTime, pageSize=pageSize, pageNo=pageNo,
+                                           is_download_pdf=is_download_pdf)
+            tasks.append(asyncio.ensure_future(asfun))
+        loop.run_until_complete(asyncio.wait(tasks))
+
+    def asser_industry_code_list(self, industry_code_list):
+        for industry_code in industry_code_list:
+            if str(industry_code) not in self.industry_code_dic:
+                raise Exception('无效行业代码{}'.format(industry_code))
+
+    def gen_readme_file(self):
+        with open('README.md', 'w', encoding='utf-8') as readme_file:
+            readme_file.write('# eastmoney\n 东方财富行业研报，每天自动更新\n\n\n')
+            for industry in self.industry_name_list:
+                file_name = industry['industry_name']
+                child_dir = self.dir_name + '/' + file_name
+                url = '{}/{}'.format(child_dir, file_name + '.csv')
+                readme_file.write('[`{}`]({})  '.format(file_name, url))
+
+
+# ==================== CLI 命令处理器 ====================
+
+def handle_query(args):
+    """处理query命令"""
+    client = report_client.EastMoneyReportClient()
+    
+    # 获取研报数据
+    data = client.fetch_reports(
+        report_type=args.type,
+        industry_code=args.industry,
+        stock_code=args.code,
+        page_no=args.page,
+        page_size=args.pagesize,
+        begin_time=args.begin,
+        end_time=args.end
+    )
+    
+    if not data:
+        print('获取研报数据失败')
+        return
+    
+    # 解析研报
+    reports = client.parse_reports(data)
+    
+    if not reports:
+        print('未找到研报')
+        return
+    
+    # 显示研报列表
+    client.display_reports(reports, page_no=args.page)
+    
+    # 如果指定了输出目录或需要保存CSV
+    if args.output or args.save_csv:
+        # 构建文件名
+        if args.type == 'industry':
+            type_name = client.get_industry_name(args.industry) or args.industry
+        elif args.type == 'stock':
+            type_name = args.code
+        else:
+            type_name = args.type
+        
+        filename = args.output or '.'
+        if not args.output:
+            filename = os.path.join('.', f'{type_name}_reports.csv')
+        else:
+            filename = os.path.join(args.output, f'{type_name}_page{args.page}.csv')
+        
+        client.save_reports_to_csv(reports, filename)
+
+
+def handle_download(args):
+    """处理download命令"""
+    client = report_client.EastMoneyReportClient(output_dir=args.output)
+    
+    if args.all and args.type == 'industry':
+        # 下载所有行业
+        industries = client.get_industry_list()
+        print(f'开始下载所有行业研报，共 {len(industries)} 个行业...')
+        
+        for idx, industry in enumerate(industries, 1):
+            print(f'\n[{idx}/{len(industries)}] 正在下载: {industry["industry_name"]}...')
+            
+            data = client.fetch_reports(
+                report_type=args.type,
+                industry_code=industry['industry_code'],
+                page_no=args.page,
+                page_size=args.pagesize,
+                begin_time=args.begin,
+                end_time=args.end
+            )
+            
+            if data:
+                reports = client.parse_reports(data)
+                if reports:
+                    client.download_reports(reports, args.output, report_type=industry['industry_name'])
+    else:
+        # 获取研报数据
+        data = client.fetch_reports(
+            report_type=args.type,
+            industry_code=args.industry,
+            stock_code=args.code,
+            page_no=args.page,
+            page_size=args.pagesize,
+            begin_time=args.begin,
+            end_time=args.end
+        )
+        
+        if not data:
+            print('获取研报数据失败')
+            return
+        
+        # 解析研报
+        reports = client.parse_reports(data)
+        
+        if not reports:
+            print('未找到研报')
+            return
+        
+        # 显示研报列表
+        client.display_reports(reports, page_no=args.page)
+        
+        # 下载PDF
+        type_name = args.type
+        if args.type == 'industry' and args.industry:
+            type_name = client.get_industry_name(args.industry) or args.industry
+        elif args.type == 'stock' and args.code:
+            type_name = args.code
+        
+        client.download_reports(reports, args.output, report_type=type_name)
+
+
+def handle_list(args):
+    """处理list命令"""
+    client = report_client.EastMoneyReportClient()
+    
+    # 搜索行业
+    industries = client.search_industry(args.search)
+    
+    if not industries:
+        print('未找到匹配的行业')
+        return
+    
+    print(f'\n{"="*60}')
+    print(f'{"行业代码":<15} {"行业名称":<30} {"页大小":<10}')
+    print(f'{"="*60}')
+    
+    for industry in industries:
+        code = industry.get('industry_code', '')
+        name = industry.get('industry_name', '')
+        size = industry.get('page_size', '')
+        print(f'{code:<15} {name:<30} {size:<10}')
+    
+    print(f'{"="*60}')
+    print(f'共 {len(industries)} 个行业\n')
+
+
+def main():
+    """主入口"""
+    # 解析命令行参数
+    args = cli.parse_args()
+    
+    if not args.command:
+        cli.create_parser().print_help()
+        return
+    
+    # 根据子命令调用对应的处理函数
+    if args.command == 'query':
+        handle_query(args)
+    elif args.command == 'download':
+        handle_download(args)
+    elif args.command == 'list':
+        handle_list(args)
+
+
+if __name__ == '__main__':
+    main()
