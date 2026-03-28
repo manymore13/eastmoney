@@ -21,8 +21,8 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/yourusername/eastmoney-reports.git
-cd eastmoney-reports
+git clone https://github.com/manymore13/eastmoney.git
+cd eastmoney
 
 # 安装依赖
 pip install -r requirements.txt
