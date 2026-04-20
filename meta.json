@@ -1,0 +1,13 @@
+{
+  "name": "eastmoney-reports",
+  "title": "东方财富研报",
+  "description": "查询和下载东方财富研报，支持行业研报、个股研报、策略报告、宏观研究、券商晨报",
+  "author": {
+    "name": "社区模板"
+  },
+  "gitUrl": "https://github.com/manymore13/eastmoney.git",
+  "tags": ["金融数据", "研报查询", "东方财富", "社区 MCP"],
+  "port": 80,
+  "logo": [],
+  "env_params": {}
+}

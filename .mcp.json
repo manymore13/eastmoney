@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "eastmoney": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "mcp_server_fastmcp"],
+      "description": "东方财富研报工具 - 查询和下载行业研报、个股研报、策略报告、宏观研究、券商晨报"
+    }
+  }
+}
