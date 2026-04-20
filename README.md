@@ -26,7 +26,7 @@
 
 ```bash
 # 这句话的意思是：从GitHub下载项目代码
-git clone https://github.com/manymore13/eastmoney.git
+git clone --depth 1 https://github.com/manymore13/eastmoney.git
 
 # 进入项目文件夹
 cd eastmoney
