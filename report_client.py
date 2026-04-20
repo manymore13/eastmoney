@@ -60,11 +60,12 @@ class EastMoneyReportClient:
     INDUSTRY_API_URL = 'https://datacenter.eastmoney.com/api/data/v1/get'
     
     # 不同类型研报的URL模板 (encodeUrl方式)
+    # 注意：晨报(MORNING)与宏观研究(MACRO)共用同一个详情页模板
     REPORT_URL_TEMPLATES = {
         ReportType.INDUSTRY: 'https://data.eastmoney.com/report/zw_industry.jshtml?encodeUrl=',
         ReportType.STRATEGY: 'https://data.eastmoney.com/report/zw_strategy.jshtml?encodeUrl=',
         ReportType.MACRO: 'https://data.eastmoney.com/report/zw_macresearch.jshtml?encodeUrl=',
-        ReportType.MORNING: 'https://data.eastmoney.com/report/zw_morning.jshtml?encodeUrl=',
+        ReportType.MORNING: 'https://data.eastmoney.com/report/zw_macresearch.jshtml?encodeUrl=',  # 晨报详情页与宏观共用
     }
     
     def __init__(self, output_dir='./reports'):
