@@ -313,19 +313,6 @@ report list  # (legacy alias)
 
 ---
 
-## License
-
-MIT License - 随便用，开心就好！
-
----
-
-<div align="center">
-
-**觉得好用？点个 ⭐ Star 支持一下！**
-
-</div>
-
----
 
 ## MCP Server Support | 支持 MCP 协议
 
@@ -410,3 +397,17 @@ Add to your MCP config file (e.g., `claude_desktop_config.json`):
 - `query_reports` - Query research reports | 查询研报
 - `download_reports` - Download PDF reports | 下载研报 PDF
 - `get_industry_code` - Search industry by keyword | 按关键词搜索行业
+
+## License
+
+MIT License - 随便用，开心就好！
+
+---
+
+<div align="center">
+
+**觉得好用？点个 ⭐ Star 支持一下！**
+
+</div>
+
+---
