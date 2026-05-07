@@ -1,0 +1,3 @@
+include src/eastmoney/data/industry.json
+include README.md
+include LICENSE

@@ -1,8 +1,17 @@
-# 东方财富研报下载工具
+# Eastmoney Research Reports Tool
 
-> 还在手动一个个下载研报？这个工具帮你一键搞定！
+> 还在手动一个个下载研报？这个工具帮你一键搞定！  
+> Tired of downloading reports one by one? This tool does it all with one command!
 
-## 这是什么？
+## What is this? | 这是什么？
+
+A **command-line tool** that helps you:
+- 📋 List all industry research reports
+- 🔍 Query any type of report (industry, strategy, macro, stock)
+- 📥 Download research report PDFs in batch
+- 📊 Export report info to Excel/CSV
+
+**In short**: It's like having an assistant to batch download reports from Eastmoney website.
 
 这是一个**命令行小工具**，可以帮你：
 - 📋 查看有哪些行业研报
@@ -12,66 +21,71 @@
 
 **一句话**：就像有个助手帮你从东方财富网站批量下载研报，你只需要下命令就行。
 
-## 环境要求
+## Installation | 安装
 
-- Windows / macOS / Linux 系统都可以
-- 安装了 Python 3.8 或更高版本
-- 电脑上已经有 curl（99%的电脑都有）
+### Quick Install | 快速安装
 
-## 安装（3步搞定）
+```bash
+pip install eastmoney-reports
+```
+
+After installation, you can use either command:
+- `eastmoney` (recommended)
+- `report` (legacy)
+
+安装后可以使用以下命令：
+- `eastmoney`（推荐）
+- `report`（旧版）
+
+### Alternative: Install from Source | 或者：从源码安装
 
 ### 第1步：下载项目
 
 打开终端（Windows上叫"命令提示符"或"PowerShell"），输入：
 
 ```bash
-# 这句话的意思是：从GitHub下载项目代码
+# 从GitHub下载项目代码
 git clone --depth 1 https://github.com/manymore13/eastmoney.git
 
 # 进入项目文件夹
 cd eastmoney
+
+# 安装依赖
+pip install -e .
 ```
 
-### 第2步：安装依赖
+### Step 2: Install Dependencies | 安装依赖
 
 ```bash
-# 安装Python依赖包（requests和lxml）
 pip install -r requirements.txt
 ```
 
-### 第3步：完成！开始使用
+### Step 3: Ready to Use! | 完成！开始使用
 
 ---
 
-## 新手入门（从零开始）
+## 新手入门（从零开始）| Getting Started
 
-### 🥇 第一次使用：先看看有哪些行业
+### 🥇 First Time: List All Industries | 第一次使用：先看看有哪些行业
 
 想知道东方财富有哪些行业分类？运行：
 
 ```bash
-# list = 列出所有行业
+# List all industries | 列出所有行业
+eastmoney list
+# or | 或者
 report list
 ```
 
-运行后你会看到一堆行业名称和代码，比如：
-```
-1001  农林牧渔
-1002  化工
-1003  钢铁
-...
-1046  游戏          <-- 这就是游戏行业的代码
-```
-
-### 🥈 想知道某个行业有什么研报？
+### 🥈 Query Industry Reports | 想知道某个行业有什么研报？
 
 比如我想看**游戏行业**的最新研报：
 
 ```bash
-# query = 查询
-# -i 1046 = 指定行业代码（游戏行业的代码是1046）
-# -s 5 = 只看最近5篇
-report query -i 1046 -s 5
+# Query industry reports | 查询行业研报
+eastmoney query -i 1046 -s 5
+# -i 1046 = industry code for gaming | 行业代码（游戏行业是1046）
+# -s 5 = show 5 latest reports | 只看最近5篇
 ```
 
 看输出：
@@ -86,73 +100,83 @@ report query -i 1046 -s 5
 ...
 ```
 
-### 🥉 想把研报信息保存到Excel？
+### 🥉 Save to CSV/Excel | 想把研报信息保存到Excel？
 
 查到了想要的研报，想保存下来？
 
 ```bash
-# --save-csv 的意思是：查询结果保存为CSV文件（可以用Excel打开）
-report query -i 1046 -s 10 --save-csv
+# Save results as CSV | 查询结果保存为CSV文件（可以用Excel打开）
+eastmoney query -i 1046 -s 10 --save-csv
 ```
 
 运行后会在当前目录生成一个 `reports_行业_xxx.csv` 文件，用Excel打开就能看到表格。
 
 ---
 
-## 进阶用法
+## 进阶用法 | Advanced Usage
 
-### 场景1：我想看策略报告（市场分析）
+### Scenario 1: Strategy Reports | 场景1：我想看策略报告（市场分析）
 
 策略报告是券商对市场行情的分析，比如"下周股市怎么走"这类。
 
 ```bash
-# -t strategy = 查策略报告
-# -s 10 = 看最近10篇
-report query -t strategy -s 10
+# Query strategy reports | 查询策略报告
+eastmoney query -t strategy -s 10
+# -t strategy = strategy reports | 查策略报告
+# -s 10 = show 10 latest | 看最近10篇
 ```
 
-### 场景2：我想看某只股票的研报
+### Scenario 2: Stock Reports | 场景2：我想看某只股票的研报
 
 比如我想看**贵州茅台**的研报（股票代码600519）：
 
 ```bash
-# -t stock = 查个股研报
-# -c 600519 = 茅台的股票代码
-report query -t stock -c 600519 -s 5
+# Query stock reports | 查询个股研报
+eastmoney query -t stock -c 600519 -s 5
+# -t stock = stock report | 查个股研报
+# -c 600519 = stock code for Moutai | 茅台的股票代码
 ```
 
-### 场景3：我想下载几篇研报PDF
+### Scenario 3: Download PDF Reports | 场景3：我想下载几篇研报PDF
 
 查到喜欢的研报后，下载保存到本地：
 
 ```bash
-# download = 下载PDF
-# -t industry = 下载行业研报
-# -i 1046 = 游戏行业
-# -s 3 = 下载最新的3篇
-# -o ./reports = 保存到当前目录的reports文件夹
-report download -t industry -i 1046 -s 3 -o ./reports
+# Download PDF | 下载PDF
+eastmoney download -t industry -i 1046 -s 3 -o ./reports
+# -t industry = industry report | 下载行业研报
+# -i 1046 = gaming industry | 游戏行业
+# -s 3 = download 3 latest | 下载最新的3篇
+# -o ./reports = save to reports folder | 保存到当前目录的reports文件夹
 ```
 
 下载完成后，去 `reports/industry` 文件夹看看，PDF已经下好了！
 
-### 场景4：下载策略报告PDF
+### Scenario 4: Download Strategy Reports PDF | 场景4：下载策略报告PDF
 
 ```bash
-# 下载最新的3篇策略报告
-report download -t strategy -s 3 -o ./reports
+# Download latest 3 strategy reports | 下载最新的3篇策略报告
+eastmoney download -t strategy -s 3 -o ./reports
 ```
 
-### 场景5：批量下载所有行业的研报？
+### Scenario 5: Batch Download All Industries | 场景5：批量下载所有行业的研报？
 
 ```bash
-# --all = 下载所有能找到的研报（注意：会下载很多！）
-report download -t industry --all -o ./reports
+# Download all available reports (warning: lots of downloads!) | 下载所有能找到的研报（注意：会下载很多！）
+eastmoney download -t industry --all -o ./reports
 ```
 
 ---
 
-## 命令大全
+## 命令大全 | Command Reference
+
+| What you want to do | Command | Example |
+|------------|----------|------|
+| List all industries | `eastmoney list` | `eastmoney list` |
+| Search industry | `eastmoney list -s keyword` | `eastmoney list -s 游戏` |
+| Query reports | `eastmoney query` | See examples above |
+| Download PDF | `eastmoney download` | See examples above |
+| Export to CSV | `eastmoney query --save-csv` | `eastmoney query -i 1046 --save-csv` |
 
 | 你想做什么 | 用的命令 | 例子 |
 |------------|----------|------|
@@ -162,7 +186,16 @@ report download -t industry --all -o ./reports
 | 下载PDF | `report download` | 见上面的例子 |
 | 导出Excel | `report query --save-csv` | `report query -i 1046 --save-csv` |
 
-### 常用参数
+### 常用参数 | Common Parameters
+
+| Parameter | Meaning | Usage |
+|------|----------|--------|
+| `-t` | Report type | `-t industry`, `-t strategy`, `-t stock` |
+| `-i` | Industry code | `-i 1046` (gaming), `-i 1001` (agriculture) |
+| `-c` | Stock code | `-c 600519` (Moutai), `-c 000001` (Ping An) |
+| `-s` | Number of reports | `-s 5` (5 reports), `-s 20` (20 reports) |
+| `-o` | Output directory | `-o ./reports` |
+| `--save-csv` | Save as CSV | Add to query command |
 
 | 参数 | 什么意思 | 怎么用 |
 |------|----------|--------|
@@ -173,7 +206,15 @@ report download -t industry --all -o ./reports
 | `-o` | 保存到哪 | `-o ./reports`（当前目录的reports文件夹） |
 | `--save-csv` | 存为Excel | 加在query命令后面就行 |
 
-### 研报类型对照表
+### 研报类型对照表 | Report Types
+
+| Type | Usage | Example |
+|------|------|------|
+| `industry` | Industry analysis | Gaming, healthcare, new energy |
+| `strategy` | Market strategy | Market trends, investment advice |
+| `macro` | Macro research | GDP, CPI, monetary policy |
+| `morning` | Broker morning notes | Daily market updates |
+| `stock` | Individual stock analysis | Moutai, Tencent |
 
 | 类型 | 用途 | 例子 |
 |------|------|------|
@@ -231,19 +272,35 @@ report list -s 游戏
 
 ---
 
-## 文件结构
+## 文件结构 | File Structure
 
 ```
 eastmoney/
-├── report           # Mac/Linux 启动脚本
-├── report.bat       # Windows 启动脚本
-├── eastmoney.py     # 主程序
-├── cli.py           # 命令行参数
-├── report_client.py # 东方财富API客户端
-├── utils.py         # 工具函数
-├── industry.json    # 行业代码数据
-├── requirements.txt # Python依赖
-└── README.md        # 说明文档
+├── pyproject.toml      # Package configuration
+├── MANIFEST.in         # Include data files
+├── README.md           # Documentation
+├── LICENSE             # MIT License
+├── src/
+│   └── eastmoney/
+│       ├── __init__.py     # Package init
+│       ├── __main__.py     # Support python -m eastmoney
+│       ├── cli.py          # Command-line interface
+│       ├── report_client.py # Eastmoney API client
+│       ├── utils.py        # Utility functions
+│       ├── legacy.py       # Legacy compatibility
+│       └── data/
+│           └── industry.json # Industry code data
+├── .github/
+│   └── workflows/
+│       └── publish.yml     # PyPI publish workflow
+└── tests/              # Test directory
+```
+
+**After installation via pip:**
+```
+# Command-line tools available:
+eastmoney list
+report list  # (legacy alias)
 ```
 
 ---

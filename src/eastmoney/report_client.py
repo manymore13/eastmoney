@@ -77,12 +77,18 @@ class EastMoneyReportClient:
         self.industry_data = self._load_industry_data()
     
     def _load_industry_data(self):
-        """加载行业数据"""
+        """Load industry data from package resources"""
         try:
-            with open('industry.json', 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            return []
+            from importlib.resources import files
+            data = files('eastmoney.data').joinpath('industry.json').read_text(encoding='utf-8')
+            return json.loads(data)
+        except Exception:
+            # Fallback to local file for development
+            try:
+                with open('industry.json', 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except FileNotFoundError:
+                return []
     
     def update_industry_data(self):
         """从东方财富API更新行业数据"""
@@ -100,7 +106,7 @@ class EastMoneyReportClient:
                 'industry': '*',
                 'industryCode': '*'
             }
-            response = self.session.get(self.BASE_URL, params=params, timeout=30)
+            response = self.session.get(self.LIST_API_URL, params=params, timeout=30)
             response.raise_for_status()
             
             data = response.json()
@@ -160,9 +166,10 @@ class EastMoneyReportClient:
         - 策略/宏观/晨报: /jg
         - 个股研报: /list2 (POST)
         """
-        # 设置默认时间
+        # 设置默认时间 - 默认查询最近3个月的数据
         if not begin_time:
-            begin_time = (datetime.now().replace(day=1)).strftime('%Y-%m-%d')
+            from datetime import timedelta
+            begin_time = (datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')
         if not end_time:
             end_time = datetime.now().strftime('%Y-%m-%d')
         
@@ -253,10 +260,11 @@ class EastMoneyReportClient:
                 response = self.session.post(
                     self.LIST2_API_URL,
                     json=post_data,
-                    headers={'Content-Type': 'application/json'}
+                    headers={'Content-Type': 'application/json'},
+                    timeout=30
                 )
             else:
-                response = self.session.get(url)
+                response = self.session.get(url, timeout=30)
             
             response.raise_for_status()
             
@@ -353,10 +361,10 @@ class EastMoneyReportClient:
         
         for idx, report in enumerate(reports, 1):
             title = report['title'][:42] + '...' if len(report['title']) > 45 else report['title']
-            org = report['org_name'][:13] + '..' if len(report['org_name']) > 15 else report['org_name']
-            date = report['publish_date'][:10]
-            # 优先显示股票名称，否则显示行业
-            stock_info = report['stock_name'] or report['industry_name']
+            org = report['org_name'][:13] + '..' if report['org_name'] and len(report['org_name']) > 15 else (report['org_name'] or '')
+            date = report['publish_date'][:10] if report['publish_date'] else ''
+            # 优先显示股票名称，否则显示行业，都没有则显示N/A
+            stock_info = report['stock_name'] or report['industry_name'] or 'N/A'
             stock_info = stock_info[:13] + '..' if len(stock_info) > 15 else stock_info
             
             print(f'{idx:<4} {title:<45} {org:<15} {date:<12} {stock_info:<15}')

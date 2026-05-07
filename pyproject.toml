@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eastmoney-reports"
+version = "1.0.0"
+description = "Tool for querying and downloading Eastmoney research reports"
+readme = "README.md"
+license = "MIT"
+authors = [
+    {name = "Community Template"},
+]
+keywords = ["eastmoney", "financial", "research-reports", "stock", "market-analysis"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "requests>=2.28.0",
+    "lxml>=4.9.0",
+]
+
+[project.optional-dependencies]
+mcp = ["fastmcp>=0.1.0"]
+
+[project.scripts]
+eastmoney = "eastmoney.cli:main"
+report = "eastmoney.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"eastmoney" = ["data/*.json"]

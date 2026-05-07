@@ -6,8 +6,11 @@
 """
 
 import argparse
+import os
 import sys
 from datetime import datetime
+
+from . import report_client
 
 
 def create_parser():
@@ -311,6 +314,165 @@ def validate_date(date_str, parser):
         parser.error(f'错误: 日期格式错误 {date_str}，请使用 YYYY-MM-DD 格式')
 
 
-if __name__ == '__main__':
+# ==================== CLI Command Handlers ====================
+
+def handle_query(args):
+    """Handle query command"""
+    client = report_client.EastMoneyReportClient()
+    
+    data = client.fetch_reports(
+        report_type=args.type,
+        industry_code=args.industry,
+        stock_code=args.code,
+        page_no=args.page,
+        page_size=args.pagesize,
+        begin_time=args.begin,
+        end_time=args.end
+    )
+    
+    if not data:
+        print('获取研报数据失败')
+        return
+    
+    reports = client.parse_reports(data, report_type=args.type)
+    
+    if not reports:
+        print('未找到研报')
+        return
+    
+    client.display_reports(reports, page_no=args.page)
+    
+    if args.output or args.save_csv:
+        if args.type == 'industry':
+            type_name = client.get_industry_name(args.industry) or args.industry
+        elif args.type == 'stock':
+            type_name = args.code
+        else:
+            type_name = args.type
+        
+        filename = args.output or '.'
+        if not args.output:
+            filename = os.path.join('.', f'{type_name}_reports.csv')
+        else:
+            filename = os.path.join(args.output, f'{type_name}_page{args.page}.csv')
+        
+        client.save_reports_to_csv(reports, filename)
+
+
+def handle_download(args):
+    """Handle download command"""
+    client = report_client.EastMoneyReportClient(output_dir=args.output)
+    
+    if args.all and args.type == 'industry':
+        industries = client.get_industry_list()
+        print(f'开始下载所有行业研报，共 {len(industries)} 个行业...')
+        
+        for idx, industry in enumerate(industries, 1):
+            print(f'\n[{idx}/{len(industries)}] 正在下载: {industry["industry_name"]}...')
+            
+            data = client.fetch_reports(
+                report_type=args.type,
+                industry_code=industry['industry_code'],
+                page_no=args.page,
+                page_size=args.pagesize,
+                begin_time=args.begin,
+                end_time=args.end
+            )
+            
+            if data:
+                reports = client.parse_reports(data, report_type=args.type)
+                if reports:
+                    client.download_reports(reports, args.output, report_type=industry['industry_name'])
+    else:
+        data = client.fetch_reports(
+            report_type=args.type,
+            industry_code=args.industry,
+            stock_code=args.code,
+            page_no=args.page,
+            page_size=args.pagesize,
+            begin_time=args.begin,
+            end_time=args.end
+        )
+        
+        if not data:
+            print('获取研报数据失败')
+            return
+        
+        reports = client.parse_reports(data, report_type=args.type)
+        
+        if not reports:
+            print('未找到研报')
+            return
+        
+        client.display_reports(reports, page_no=args.page)
+        
+        type_name = args.type
+        if args.type == 'industry' and args.industry:
+            type_name = client.get_industry_name(args.industry) or args.industry
+        elif args.type == 'stock' and args.code:
+            type_name = args.code
+        
+        client.download_reports(reports, args.output, report_type=type_name)
+
+
+def handle_list(args):
+    """Handle list command"""
+    client = report_client.EastMoneyReportClient()
+    
+    industries = client.search_industry(args.search)
+    
+    if not industries:
+        print('未找到匹配的行业')
+        return
+    
+    print(f'\n{"="*60}')
+    print(f'{"行业代码":<15} {"行业名称":<30} {"页大小":<10}')
+    print(f'{"="*60}')
+    
+    for industry in industries:
+        code = industry.get('industry_code', '')
+        name = industry.get('industry_name', '')
+        size = industry.get('page_size', '')
+        print(f'{code:<15} {name:<30} {size:<10}')
+    
+    print(f'{"="*60}')
+    print(f'共 {len(industries)} 个行业\n')
+
+
+def handle_update(args):
+    """Handle update command"""
+    client = report_client.EastMoneyReportClient()
+    client.update_industry_data()
+
+
+def main():
+    """Main entry point"""
     args = parse_args()
-    print(args)
+    
+    if not args.command:
+        create_parser().print_help()
+        return
+    
+    command_map = {
+        'q': 'query',
+        'query': 'query',
+        'd': 'download',
+        'download': 'download',
+        'l': 'list',
+        'list': 'list'
+    }
+    
+    cmd = command_map.get(args.command, args.command)
+    
+    if cmd == 'query':
+        handle_query(args)
+    elif cmd == 'download':
+        handle_download(args)
+    elif cmd == 'list':
+        handle_list(args)
+    elif cmd == 'update':
+        handle_update(args)
+
+
+if __name__ == '__main__':
+    main()
