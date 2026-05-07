@@ -324,3 +324,89 @@ MIT License - 随便用，开心就好！
 **觉得好用？点个 ⭐ Star 支持一下！**
 
 </div>
+
+---
+
+## MCP Server Support | 支持 MCP 协议
+
+This package includes an MCP (Model Context Protocol) server, allowing AI agents to query and download reports directly.
+
+本包包含 MCP (Model Context Protocol) 服务器，允许 AI 智能体直接查询和下载研报。
+
+### Quick Start with MCP | MCP 快速开始
+
+After installation, the MCP server is available as a command-line tool:
+
+安装后，MCP 服务器可作为命令行工具使用：
+
+```bash
+# Start MCP server | 启动 MCP 服务器
+eastmoney-mcp
+```
+
+### Install via Prompt | 通过提示词安装
+
+For AI agents that support prompt-based installation (e.g., Cursor, Cline), copy and paste this prompt:
+
+对于支持提示词安装的 AI agent（如 Cursor、Cline），复制以下提示词：
+
+```
+Please install and configure the Eastmoney MCP server:
+
+1. Install the package: pip install eastmoney-reports
+2. Add this to my MCP config file (e.g., ~/.cursor/mcp.json or ~/.cline/mcp_config.json):
+{
+  "mcpServers": {
+    "eastmoney": {
+      "command": "eastmoney-mcp",
+      "description": "Eastmoney Research Reports Tool"
+    }
+  }
+}
+3. Verify installation by running: eastmoney-mcp --version
+```
+
+### One-Line Install (like npx) | 一行安装（类似 npx）
+
+Using pipx (similar to npx for Python):
+
+使用 pipx（类似 Python 版的 npx）：
+
+```bash
+# Run without permanent installation | 无需安装直接运行
+pipx run eastmoney-reports eastmoney-mcp
+```
+
+If you don't have pipx installed:
+
+如果还没安装 pipx：
+
+```bash
+pip install pipx
+pipx ensurepath
+```
+
+### Configure in AI Tools | 在 AI 工具中配置
+
+**Claude Desktop / Cursor / Cline:**
+
+Add to your MCP config file (e.g., `claude_desktop_config.json`):
+
+添加到 MCP 配置文件（如 `claude_desktop_config.json`）：
+
+```json
+{
+  "mcpServers": {
+    "eastmoney": {
+      "command": "eastmoney-mcp",
+      "description": "Eastmoney Research Reports Tool"
+    }
+  }
+}
+```
+
+**Available MCP Tools | MCP 工具列表：**
+- `list_industries` - List all industries | 列出所有行业
+- `query_reports` - Query research reports | 查询研报
+- `download_reports` - Download PDF reports | 下载研报 PDF
+- `get_industry_code` - Search industry by keyword | 按关键词搜索行业

@@ -33,6 +33,7 @@ mcp = ["fastmcp>=0.1.0"]
 [project.scripts]
 eastmoney = "eastmoney.cli:main"
 report = "eastmoney.cli:main"
+eastmoney-mcp = "eastmoney.mcp_server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
