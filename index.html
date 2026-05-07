@@ -127,6 +127,35 @@
             color: var(--text-secondary);
         }
 
+        /* Agent Section */
+        .agent-section {
+            margin: 50px 0;
+            animation: fadeIn 0.8s ease-out 0.3s both;
+        }
+        
+        .agent-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-blue);
+            border-radius: 12px;
+            padding: 32px;
+            margin-top: 24px;
+        }
+        
+        .agent-intro {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .agent-intro h3 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+            color: var(--accent-blue);
+        }
+        
+        .agent-intro p {
+            color: var(--text-secondary);
+        }
+        
         /* 特性卡片 */
         .features {
             display: grid;
@@ -407,25 +436,64 @@
         }
     </style>
 </head>
-<body>
+    <body>
     <div class="bg-gradient"></div>
     
     <div class="container">
         <header>
             <div class="logo">
                 <div class="logo-icon">EM</div>
-                <h1>东方财富研报下载</h1>
+                <h1>Eastmoney Reports Tool</h1>
             </div>
-            <p class="tagline">命令行一键下载研报，告别手动一个个保存</p>
+            <p class="tagline">Query and download research reports via CLI & MCP</p>
             
             <div class="badges">
-                <span class="badge">🖥️ Windows</span>
-                <span class="badge">🍎 macOS</span>
-                <span class="badge">🐧 Linux</span>
-                <span class="badge">⬇️ PDF下载</span>
-                <span class="badge">📊 CSV导出</span>
+                <span class="badge">🤖 MCP Server</span>
+                <span class="badge">🖥️ CLI Tool</span>
+                <span class="badge">📥 PDF/CSV</span>
+                <span class="badge">🐍 Python</span>
             </div>
         </header>
+
+        <!-- MCP for AI Agents -->
+        <section class="agent-section">
+            <h2 class="section-title">
+                <span>🤖</span> Use with AI Agents
+            </h2>
+            
+            <div class="agent-content">
+                <div class="agent-intro">
+                    <h3>One-command install for agents</h3>
+                    <p>Supports Claude Desktop, Cursor, Cline, and any MCP-compatible AI tool.</p>
+                </div>
+                
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot dot-red"></span>
+                        <span class="terminal-dot dot-yellow"></span>
+                        <span class="terminal-dot dot-green"></span>
+                        <span class="terminal-title">MCP Server Quick Start</span>
+                    </div>
+                    <div class="terminal-body">
+                        <div class="command-block">
+                            <div class="command-label">① Install package</div>
+                            <div class="command">pip install eastmoney-reports</div>
+                        </div>
+                        
+                        <div class="command-block">
+                            <div class="command-label">② Add to MCP config (e.g., claude_desktop_config.json)</div>
+                            <div class="command">{ "mcpServers": { "eastmoney": { "command": "eastmoney-mcp" } } }</div>
+                        </div>
+                        
+                        <div class="command-block">
+                            <div class="command-label">③ Start using in your AI agent</div>
+                            <div class="command">eastmoney-mcp</div>
+                            <div class="command-comment"># Or use via prompt: "Query reports for gaming industry (code 1046)"</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- 特性 -->
         <section class="features">
@@ -454,7 +522,7 @@
         <!-- 终端演示 -->
         <section class="terminal-section">
             <h2 class="section-title">
-                <span>💻</span> 试试这些命令
+                <span>💻</span> CLI Quick Start
             </h2>
             
             <div class="terminal">
@@ -462,25 +530,23 @@
                     <span class="terminal-dot dot-red"></span>
                     <span class="terminal-dot dot-yellow"></span>
                     <span class="terminal-dot dot-green"></span>
-                    <span class="terminal-title">终端 / Command Prompt</span>
+                    <span class="terminal-title">Terminal</span>
                 </div>
                 <div class="terminal-body">
                     <div class="command-block">
-                        <div class="command-label">① 查看有哪些行业</div>
-                        <div class="command">report list</div>
-                        <div class="command-comment"># 运行后你会看到所有行业列表：游戏、医疗、新能源...</div>
+                        <div class="command-label">Install</div>
+                        <div class="command">pip install eastmoney-reports</div>
                     </div>
                     
                     <div class="command-block">
-                        <div class="command-label">② 查询游戏行业的研报（看最近5篇）</div>
-                        <div class="command">report query -i 1046 -s 5</div>
-                        <div class="command-comment"># -i 1046 是游戏行业的代码，-s 5 是要5篇</div>
+                        <div class="command-label">List industries</div>
+                        <div class="command">eastmoney list</div>
                     </div>
                     
                     <div class="command-block">
-                        <div class="command-label">③ 想知道更多玩法？</div>
-                        <div class="command">report -h</div>
-                        <div class="command-comment"># 查看所有命令和参数说明</div>
+                        <div class="command-label">Query reports</div>
+                        <div class="command">eastmoney query -i 1046 -s 5</div>
+                        <div class="command-comment"># Gaming industry, 5 reports</div>
                     </div>
                 </div>
             </div>
@@ -489,33 +555,30 @@
         <!-- 快速入门 -->
         <section class="quickstart">
             <h2 class="section-title" style="margin-bottom: 32px;">
-                <span>🚀</span> 3分钟快速入门
+                <span>🚀</span> Quick Start
             </h2>
             
             <div class="step">
                 <div class="step-number">1</div>
                 <div class="step-content">
-                    <h3>下载项目</h3>
-                    <p>打开终端，把项目克隆到本地：</p>
-                    <div class="step-code">git clone https://github.com/manymore13/eastmoney.git</div>
+                    <h3>Install</h3>
+                    <div class="step-code">pip install eastmoney-reports</div>
                 </div>
             </div>
             
             <div class="step">
                 <div class="step-number">2</div>
                 <div class="step-content">
-                    <h3>安装依赖</h3>
-                    <p>进入文件夹，安装Python依赖：</p>
-                    <div class="step-code">cd eastmoney && pip install -r requirements.txt</div>
+                    <h3>List industries</h3>
+                    <div class="step-code">eastmoney list</div>
                 </div>
             </div>
             
             <div class="step">
                 <div class="step-number">3</div>
                 <div class="step-content">
-                    <h3>开始使用！</h3>
-                    <p>运行下面的命令，看看效果：</p>
-                    <div class="step-code">report list</div>
+                    <h3>Query reports</h3>
+                    <div class="step-code">eastmoney query -i 1046 -s 5</div>
                 </div>
             </div>
         </section>
@@ -523,56 +586,36 @@
         <!-- 常见场景 -->
         <section class="usecases">
             <h2 class="section-title">
-                <span>💡</span> 常见用法示例
+                <span>💡</span> Examples
             </h2>
             
             <div class="usecase-grid">
                 <div class="usecase-card">
                     <div class="usecase-title">
-                        <span class="icon">🎮</span> 查看游戏行业研报
+                        <span class="icon">🎮</span> Gaming Reports
                     </div>
-                    <div class="usecase-command">report query -i 1046 -s 10</div>
-                    <div class="usecase-desc">查询游戏行业（代码1046）的最新10篇研报</div>
+                    <div class="usecase-command">eastmoney query -i 1046 -s 10</div>
                 </div>
                 
                 <div class="usecase-card">
                     <div class="usecase-title">
-                        <span class="icon">📈</span> 看策略报告
+                        <span class="icon">📈</span> Strategy Reports
                     </div>
-                    <div class="usecase-command">report query -t strategy -s 5</div>
-                    <div class="usecase-desc">看券商对市场行情的分析报告</div>
+                    <div class="usecase-command">eastmoney query -t strategy -s 5</div>
                 </div>
                 
                 <div class="usecase-card">
                     <div class="usecase-title">
-                        <span class="icon">🍷</span> 看茅台的研报
+                        <span class="icon">🍷</span> Stock Reports
                     </div>
-                    <div class="usecase-command">report query -t stock -c 600519</div>
-                    <div class="usecase-desc">查询贵州茅台（600519）的个股研报</div>
+                    <div class="usecase-command">eastmoney query -t stock -c 600519</div>
                 </div>
                 
                 <div class="usecase-card">
                     <div class="usecase-title">
-                        <span class="icon">📥</span> 下载PDF保存
+                        <span class="icon">📥</span> Download PDF
                     </div>
-                    <div class="usecase-command">report download -i 1046 -s 3 -o ./reports</div>
-                    <div class="usecase-desc">下载游戏行业最新3篇研报的PDF</div>
-                </div>
-                
-                <div class="usecase-card">
-                    <div class="usecase-title">
-                        <span class="icon">📊</span> 导出到Excel
-                    </div>
-                    <div class="usecase-command">report query -i 1046 --save-csv</div>
-                    <div class="usecase-desc">查询结果保存为CSV文件，可用Excel打开</div>
-                </div>
-                
-                <div class="usecase-card">
-                    <div class="usecase-title">
-                        <span class="icon">🔎</span> 搜索行业
-                    </div>
-                    <div class="usecase-command">report list -s 新能源</div>
-                    <div class="usecase-desc">搜索包含"新能源"关键词的行业</div>
+                    <div class="usecase-command">eastmoney download -i 1046 -s 3 -o ./reports</div>
                 </div>
             </div>
         </section>
